@@ -142,7 +142,7 @@ def class_report(model,x_test,y_test):
 
 #side bar
 with st.sidebar :
-    selected = option_menu('sentimen analisis',['Home','Text preprocessing','Algoritma Genetika','Report'])
+    selected = option_menu('sentimen analisis',['Home','Data Preparation','Modeling'])
 
 if(selected == 'Home') :
     tab1,tab2=st.tabs(['Main','Scrapping'])
@@ -160,36 +160,16 @@ if(selected == 'Home') :
         if st.button('start scrapping') :
             scrapping_result=scrapping_play_store(url_app)
             
-            
-            
-elif(selected == 'Text preprocessing') :
-    tab1,tab2,tab3=st.tabs(['Labeling','Dataset','Text preprosesing'])
+
+elif(selected == 'Data Preparation') :
+    tab1,tab2,tab3,tab4,tab5=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','Overview'])
 
     with tab1 :
-        file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling", type='csv')
-        if file_labeling is not None:
-            option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob"),key="pelabelan")
-
-            if option_label == 'manual':
-                manual_labeling(file_labeling)
-    
-    with tab2 :        
-        file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
-        if file_labeling is not None:
-            file = pd.read_csv(file_labeling)
-            st.dataframe(file)
-            ulasan = st.text_input('masukan nama kolom ulasan data',value="content")
-            label = st.text_input('masukan nama kolom labeling data',value="sentimen")
-            if st.button("tampilkan dataset"):
-                kolom_ulasan =file[ulasan]
-                kolom_label =file[label]
-                output_dataset(file,kolom_ulasan,kolom_label)
-    with tab3 :
 
         uploaded_file = st.file_uploader("masukan data yang akan dilakukan preprocessing", key="preprocewssing", type='csv')
 
         if uploaded_file is not None:
-
+            
             dataset = pd.read_csv(uploaded_file)
             st.write('proses untuk menampilkan hasil text preprocessing dan tf-idf mungkin membutuhkan waktu yang cukup lama')
             kolom = st.text_input('masukan nama kolom ulasan/review pada data yang di input',value="content")
@@ -233,19 +213,62 @@ elif(selected == 'Text preprocessing') :
                 #merubah list ke str 
                 dataset['Stopword Removal'] = dataset['stopword'].apply(' '.join)
                 st.dataframe(stopword)
-                dataset.to_csv('hasil_preprocessing.csv',index=False)
                 prepro=True
-                
-            if st.button('start pembobotan TF-IDF') :
-                dataset=pd.read_csv('hasil_preprocessing.csv')
-                datasett=dataset['Stopword Removal'] 
-                start_tfidf=prepro.output_tfidf(datasett)
-                st.write('tampilan hasil pembobotan TF-IDF')
-                st.dataframe(start_tfidf,use_container_width=True)
+
+                st.dataframe(dataset,use_container_width=True)
+                csv = dataset.to_csv().encode("utf-8")
+                st.download_button(
+                    label="Download hasil prepro",
+                    data=csv,
+                    file_name=f"data hasil preprocessing.csv",
+                    mime="text/csv",
+                    icon=":material/download:",
+                )
+    with tab2:
+        uploaded_file = st.file_uploader("masukan data yang akan dilakukan pembobotan TF-IDF", key="TF-IDF", type='csv')
+
+        if uploaded_file is not None:
+            
+            dataset = pd.read_csv(uploaded_file)
+            st.write('proses untuk menampilkan hasil text preprocessing dan tf-idf mungkin membutuhkan waktu yang cukup lama')
+            kolom = st.text_input('masukan nama kolom stopword pada data yang diinput',value="Stopword Removal")
+            st.write('tampilan dataset yang di input')
+            st.write(dataset)
+
+            if st.button('start TF-IDF') :
+                with st.spinner("Sedang melakukan pembobotan TF-IDF"):
+                    data=dataset[f'{kolom}'] 
+                    start_tfidf=prepro.output_tfidf(data)
+                st.success('berhasil melakukan pembobotan TF-IDF')
+                # st.write('tampilan hasil pembobotan TF-IDF')
+                # st.dataframe(start_tfidf,use_container_width=True)
+
                 # Save the results to a CSV file
-                    
+    
+    with tab3 :
+        file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling", type='csv')
+        if file_labeling is not None:
+            option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob"),key="pelabelan")
+
+            if option_label == 'manual':
+                manual_labeling(file_labeling)
+    
+    with tab4 :        
+        file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
+        if file_labeling is not None:
+            file = pd.read_csv(file_labeling)
+            st.dataframe(file)
+            ulasan = st.text_input('masukan nama kolom ulasan data',value="content")
+            label = st.text_input('masukan nama kolom labeling data',value="sentimen")
+            if st.button("tampilkan dataset"):
+                kolom_ulasan =file[ulasan]
+                kolom_label =file[label]
+                output_dataset(file,kolom_ulasan,kolom_label)
+   
+    with tab5 :
+        st.write('disini ringkasan dari data preparation')
 elif(selected == 'Modeling') :
-    tab1,tab2=st.tabs(['Algoritma Genetika','Testing'])
+    tab1,tab2,tab3=st.tabs(['Model','Evaluation','Testing'])
     with tab1:
         st.header("Algoritma Genetika")
         probcros = st.number_input('probabilitas crossover',format="%0.1f",value=0.6,step=0.1)
@@ -473,17 +496,16 @@ elif(selected == 'Modeling') :
             else:
                 st.write('hasil akan tampil disini :)')  
             
-
-elif(selected == 'Report') :
-    st.header('Halaman Report')
-    st.write('evaluasi model menggunakan confusion matrix')
-    
-    GAbaru=pd.read_csv('hasil_optimasi_GA.csv')
-    bestCbaru = GAbaru['C_best'].iloc[-1]
-    bestGammabaru = GAbaru['Gamma_best'].iloc[-1]
-    st.subheader('hasil evaluasi metode svm')
-    svmbiasa = model_svm(None,None,x_train,y_train)
-    class_report(svmbiasa,x_test,y_test)
-    st.subheader('hasil evaluasi metode gasvm')
-    svmGAbaru = model_svm(bestCbaru,bestGammabaru,x_train,y_train)
-    class_report(svmGAbaru,x_test,y_test)
+    with tab3 :
+        st.header('Halaman Report')
+        st.write('evaluasi model menggunakan confusion matrix')
+        
+        GAbaru=pd.read_csv('hasil_optimasi_GA.csv')
+        bestCbaru = GAbaru['C_best'].iloc[-1]
+        bestGammabaru = GAbaru['Gamma_best'].iloc[-1]
+        st.subheader('hasil evaluasi metode svm')
+        svmbiasa = model_svm(None,None,x_train,y_train)
+        class_report(svmbiasa,x_test,y_test)
+        st.subheader('hasil evaluasi metode gasvm')
+        svmGAbaru = model_svm(bestCbaru,bestGammabaru,x_train,y_train)
+        class_report(svmGAbaru,x_test,y_test)

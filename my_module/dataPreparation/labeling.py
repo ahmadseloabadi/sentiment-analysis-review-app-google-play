@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 
 
-def manual_labeling(dataset_path):
+def manual_labeling(dataset):
     count=False
     # Load dataset
-    data = pd.read_csv(dataset_path)
+    data = pd.DataFrame(dataset)
     st.write(data)
     count_edit=st.number_input('masukan banyak data yang akan dilabeli',step=1,value=len(data)-1,min_value=1,max_value=len(data)-1)
     if st.button("menambahkan kolom sentimen"):
@@ -33,3 +33,5 @@ def manual_labeling(dataset_path):
         if submitted:
             st.write('terima kasih :)')
 
+def vader_labeling(dataset):
+    print("vader labeling")
