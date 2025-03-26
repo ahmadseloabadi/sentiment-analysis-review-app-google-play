@@ -4,6 +4,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
 # text preprosessing
 def cleansing(kalimat_baru): 
@@ -89,3 +90,45 @@ def stemming(kalimat_baru):
     # Lakukan stemming pada setiap kata
     stemmed_words = [stemmer.stem(word) for word in kalimat_baru]
     return stemmed_words
+
+def output_tfidf(dataset):
+    # Create CountVectorizer instance
+    count_vectorizer = CountVectorizer()
+    X_count = count_vectorizer.fit_transform(dataset)
+
+    # Create TfidfTransformer instance
+    tfidf_transformer = TfidfTransformer()
+    X_tfidf = tfidf_transformer.fit_transform(X_count)
+
+    # Create TfidfVectorizer instance
+    tfidf_vectorizer = TfidfVectorizer()
+    X_tfidf_vectorized = tfidf_vectorizer.fit_transform(dataset)
+
+    # Get the feature names from CountVectorizer or TfidfVectorizer
+    feature_names = count_vectorizer.get_feature_names_out()  # or tfidf_vectorizer.get_feature_names()
+
+    # Create a dictionary to store the results
+    results = {"Ulasan": [], "Term": [], "TF": [], "IDF": [], "TF-IDF": []}
+
+    # Loop over the documents
+    for i in range(len(dataset)):
+        # Add the document to the results dictionary
+        results["Ulasan"].extend([f" ulasan{i+1}"] * len(feature_names))
+        # Add the feature names to the results dictionary
+        results["Term"].extend(feature_names)
+        # Calculate the TF, IDF, and TF-IDF for each feature in the document
+        for j, feature in enumerate(feature_names):
+            tf = X_count[i, j]
+            idf = tfidf_transformer.idf_[j]  # or X_tfidf_vectorized.idf_[j]
+            tf_idf_score = X_tfidf[i, j]  # or X_tfidf_vectorized[i, j]
+            # Add the results to the dictionary
+            results["TF"].append(tf)
+            results["IDF"].append(idf)
+            results["TF-IDF"].append(tf_idf_score)
+    # Convert the results dictionary to a Pandas dataframe
+    df = pd.DataFrame(results)
+
+    #filter nilai term
+    newdf = df[(df.TF != 0 )]
+    # Save the results to a CSV file
+    return newdf

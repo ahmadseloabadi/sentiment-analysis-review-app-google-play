@@ -11,8 +11,6 @@ import numpy as np
 import random as rd
 import seaborn as sns
 
-
-
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
 from sklearn.model_selection import train_test_split
@@ -20,170 +18,15 @@ from sklearn.metrics import confusion_matrix,classification_report
 from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
 
-import Genetic_Algorithm as svm_hp_opt
-from preprocessing import cleansing,casefolding,slangword,stemming,stopword,tokenizing,handle_negation
-
-from google_play_scraper import Sort, reviews_all, app
-from google_play_scraper.exceptions import NotFoundError
-
+import my_module.ga.Genetic_Algorithm as svm_hp_opt
+from my_module.dataPreparation.preprocessing import cleansing,casefolding,slangword,stemming,stopword,tokenizing,handle_negation,output_tfidf
+from my_module.dataGathering.scraping import scrapping_play_store
 
 # Set page layout and title
 st.set_page_config(page_title="review google play app")
 
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
-
-
-def extract_app_details(url):
-    """Ekstrak app ID, bahasa, dan negara dari URL Play Store."""
-    app_id_match = re.search(r'id=([^&]+)', url)
-    lang_match = re.search(r'hl=([^&]+)', url)
-    country_match = re.search(r'gl=([^&]+)', url)
-    
-    app_id = app_id_match.group(1) if app_id_match else None
-    lang = lang_match.group(1) if lang_match else 'id'  # Default ke Inggris jika tidak ada
-    country = country_match.group(1) if country_match else 'ID'  # Default ke US jika tidak ada
-    
-    return app_id, lang, country
-@st.cache_data
-def convert_for_download(df):
-    return df.to_csv().encode("utf-8")
-
-
-#scrapping google play store
-def scrapping_play_store(url_app):
-    try :
-        app_id, lang, country=extract_app_details(url_app)
-        with st.spinner("Sedang mengambil data..."):
-            infoapp = app(
-            app_id,
-            lang=lang, # defaults to 'en'
-            country=country # defaults to 'us'
-            )
-            name_app=infoapp.get('title')
-            st.session_state['name_app']=name_app
-            st.toast(f"sedang melakukan scraping data aplikasi {st.session_state['name_app']}")
-            
-            scrapping = reviews_all(
-            app_id,
-            sleep_milliseconds=0, # defaults to 0
-            lang=lang, # defaults to 'en'
-            country=country, # defaults to 'us'
-            sort=Sort.MOST_RELEVANT, # defaults to Sort.MOST_RELEVANT , you can use Sort.NEWEST to get newst reviews
-            )
-            
-        df_scrapping = pd.DataFrame(np.array(scrapping),columns=['review'])
-        df_scrapping = df_scrapping.join(pd.DataFrame(df_scrapping.pop('review').tolist()))
-        new_df = df_scrapping[['userName', 'score','at', 'content']]
-        sorted_df = new_df.sort_values(by='at', ascending=False)
-        ulasan = sorted_df
-        ulasan.dropna()
-        st.session_state['url']=url_app
-        st.session_state['is_scraping'] = True
-    except NotFoundError:
-        st.error("⚠️ Aplikasi tidak ditemukan. Pastikan URL yang dimasukkan benar!")
-        
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
-        
-    else:
-        st.toast(f"data aplikasi {name_app} berhasil diambil")
-        # Mengambil tanggal paling kecil dan paling besar
-        tanggal_terkecil = sorted_df['at'].min().strftime('%Y-%m-%d %H:%M:%S')
-        tanggal_terbesar = sorted_df['at'].max().strftime('%Y-%m-%d %H:%M:%S')
-        
-        st.write(f"hasil scraping ulasan aplikasi {name_app} pada google play store dengan jarak data yang diambil pada tangga {tanggal_terkecil} hingga {tanggal_terbesar} dengan jumlah ulasan sebanyak {len(sorted_df)}")
-        sorted_df = sorted_df.sort_index()
-        st.dataframe(sorted_df)
-        
-        st.write("jika data sudah sesuai silahkan download data untuk proses selanjutnya :)")
-        csv = convert_for_download(sorted_df)
-        st.download_button(
-            label="Download CSV",
-            data=csv,
-            file_name=f"ulasan aplikasi {name_app}.csv",
-            mime="text/csv",
-            icon=":material/download:",
-        )
-    finally:
-        if 'is_scrap' not in st.session_state :
-            st.toast("silahkan lakukan scraping data terlebih dahulu")
-
-def labeling_Data(dataset_path):
-    count=False
-    # Load dataset
-    data = pd.read_csv(dataset_path)
-    st.write(data)
-    count_edit=st.number_input('masukan banyak data yang akan dilabeli',step=1,value=len(data)-1,min_value=1,max_value=len(data)-1)
-    if st.button("menambahkan kolom sentimen"):
-        data['sentimen'] = ''
-        
-    
-    with st.form("my_form"):
-        st.write('pastikan penyimpan dengan cara mendownload hasil labeling')        
-        # Display the selected rows for editing
-        edited_df = data.loc[:count_edit].copy()
-        st.write('silahkan labeli data :)')
-        edited = st.data_editor(edited_df, num_rows="dynamic",column_config={
-        "sentimen": st.column_config.SelectboxColumn(
-            "sentimen",
-            help="kelas sentimen",
-            width="medium",
-            options=[
-                "positif",
-                "netral",
-                "negatif",
-            ],        
-        )},)
-        # Every form must have a submit button.
-        submitted = st.form_submit_button("selesai")    
-        if submitted:
-            st.write('terima kasih :)')
-
-
-
-
-def output_tfidf(dataset):
-    # Create CountVectorizer instance
-    count_vectorizer = CountVectorizer()
-    X_count = count_vectorizer.fit_transform(dataset)
-
-    # Create TfidfTransformer instance
-    tfidf_transformer = TfidfTransformer()
-    X_tfidf = tfidf_transformer.fit_transform(X_count)
-
-    # Create TfidfVectorizer instance
-    tfidf_vectorizer = TfidfVectorizer()
-    X_tfidf_vectorized = tfidf_vectorizer.fit_transform(dataset)
-
-    # Get the feature names from CountVectorizer or TfidfVectorizer
-    feature_names = count_vectorizer.get_feature_names_out()  # or tfidf_vectorizer.get_feature_names()
-
-    # Create a dictionary to store the results
-    results = {"Ulasan": [], "Term": [], "TF": [], "IDF": [], "TF-IDF": []}
-
-    # Loop over the documents
-    for i in range(len(dataset)):
-        # Add the document to the results dictionary
-        results["Ulasan"].extend([f" ulasan{i+1}"] * len(feature_names))
-        # Add the feature names to the results dictionary
-        results["Term"].extend(feature_names)
-        # Calculate the TF, IDF, and TF-IDF for each feature in the document
-        for j, feature in enumerate(feature_names):
-            tf = X_count[i, j]
-            idf = tfidf_transformer.idf_[j]  # or X_tfidf_vectorized.idf_[j]
-            tf_idf_score = X_tfidf[i, j]  # or X_tfidf_vectorized[i, j]
-            # Add the results to the dictionary
-            results["TF"].append(tf)
-            results["IDF"].append(idf)
-            results["TF-IDF"].append(tf_idf_score)
-    # Convert the results dictionary to a Pandas dataframe
-    df = pd.DataFrame(results)
-
-    #filter nilai term
-    newdf = df[(df.TF != 0 )]
-    # Save the results to a CSV file
-    return newdf
 
 def data_spilt(kolom_ulasan,kolom_label):
     x=kolom_ulasan
@@ -248,6 +91,40 @@ def output_dataset(dataset,kolom_ulasan,kolom_label):
     # Membuat diagram pie interaktif
     fig = px.pie(datasett, values='jumlah', names='sentimen', title='Diagram kelas sentimen')
     st.plotly_chart(fig)
+
+def report_dataset_final(dataset):
+    name_app = st.session_state['name_app']
+
+    st.subheader(f'Tabel dataset ulasan palikasi {name_app}')
+    def filter_sentiment(dataset, selected_sentiment):
+        return dataset[dataset['sentimen'].isin(selected_sentiment)]
+
+    sentiment_map = {'positif': 'positif', 'negatif': 'negatif', 'netral': 'netral'}
+    selected_sentiment = st.multiselect('Pilih kelas sentimen', list(sentiment_map.keys()), default=list(sentiment_map.keys()))
+    filtered_data = filter_sentiment(dataset, selected_sentiment)
+    st.dataframe(filtered_data)
+
+    # Hitung jumlah kelas dataset
+    st.write("Jumlah kelas sentimen:  ")
+    kelas_sentimen = dataset['sentimen'].value_counts()
+    # st.write(kelas_sentimen)
+    datneg,datnet, datpos  = st.columns(3)
+    with datpos:
+        st.markdown("Positif")
+        st.markdown(f"<h1 style='text-align: center; color: blue;'>{kelas_sentimen[0]}</h1>", unsafe_allow_html=True)
+    with datnet:
+        st.markdown("Netral")
+        st.markdown(f"<h1 style='text-align: center; color: red;'>{kelas_sentimen[2]}</h1>", unsafe_allow_html=True)
+    with datneg:
+        st.markdown("Negatif")
+        st.markdown(f"<h1 style='text-align: center; color: aqua;'>{kelas_sentimen[1]}</h1>", unsafe_allow_html=True)
+    #membuat diagram
+    data = {'sentimen': ['negatif', 'netral', 'positif'],
+    'jumlah': [kelas_sentimen[1], kelas_sentimen[2], kelas_sentimen[0]]}
+    datasett = pd.DataFrame(data)
+    # Membuat diagram pie interaktif
+    fig = px.pie(datasett, values='jumlah', names='sentimen', title='Diagram kelas sentimen')
+    st.plotly_chart(fig)
     with st.expander('pembagian dataset') :
         st.write(f"pembagian dataset dilakukan dengan skala 80:20, dimana 80%  menjadi data training sedangkan 20% menjadi data testing dari total dataset yaitu {len(dataset)}")
         st.write(f'Jumlah data training sebanyak {len(X_train)} data ,data training dapat dilihat pada tabel berikut')
@@ -259,12 +136,6 @@ def output_dataset(dataset,kolom_ulasan,kolom_label):
 
 
 kfold=5
-def data_weight_split(dataset):
-    kolom_ulasan =dataset['Stopword Removal']
-    kolom_label =dataset['sentimen']
-    X_train, X_test, Y_train, Y_test=data_spilt(kolom_ulasan,kolom_label)
-    y_train, y_test,x_train, x_test=data_tfidf(X_train, X_test, Y_train, Y_test)
-    return y_train, y_test,x_train, x_test
 
 def class_report(model,x_test,y_test):
     # Using the model to predict the labels of the test data
@@ -283,7 +154,7 @@ def class_report(model,x_test,y_test):
 
 #side bar
 with st.sidebar :
-    selected = option_menu('sentimen analisis',['Home','Text preprocessing','Algoritma Genetika','Testing','Report'])
+    selected = option_menu('sentimen analisis',['Home','Text preprocessing','Algoritma Genetika','Report'])
 
 if(selected == 'Home') :
     tab1,tab2=st.tabs(['Main','Scrapping'])
