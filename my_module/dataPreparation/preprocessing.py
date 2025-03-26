@@ -7,6 +7,7 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
@@ -96,48 +97,29 @@ def stemming(kalimat_baru):
     stemmed_words = [stemmer.stem(word) for word in kalimat_baru]
     return stemmed_words
 
-def output_tfidf(dataset):
+def output_tfidf(dataset,column_name):
     
-    # Create CountVectorizer instance
-    count_vectorizer = CountVectorizer()
-    X_count = count_vectorizer.fit_transform(dataset)
 
-    # Create TfidfTransformer instance
-    tfidf_transformer = TfidfTransformer()
-    X_tfidf = tfidf_transformer.fit_transform(X_count)
+    # Transformasi data hasil prepro menggunakan TF-IDF
+    tfidf = vectorizer.fit_transform(dataset[f'{column_name}'])
 
-    # Create TfidfVectorizer instance
-    tfidf_vectorizer = TfidfVectorizer()
-    X_tfidf_vectorized = tfidf_vectorizer.fit_transform(dataset)
+    # Mendapatkan daftar kata yang digunakan dalam TF-IDF
+    feature_names = vectorizer.get_feature_names_out()
 
-    # Get the feature names from CountVectorizer or TfidfVectorizer
-    feature_names = count_vectorizer.get_feature_names_out()  # or tfidf_vectorizer.get_feature_names()
+    # Membuat DataFrame kosong untuk menyimpan nilai TF-IDF
+    tfidf_df = pd.DataFrame(columns=['TF-IDF'])
 
-    # Create a dictionary to store the results
-    results = {"Ulasan": [], "Term": [], "TF": [], "IDF": [], "TF-IDF": []}
-
-    # Loop over the documents
-    for i in range(len(dataset)):
-        # Add the document to the results dictionary
-        results["Ulasan"].extend([f" ulasan{i+1}"] * len(feature_names))
-        # Add the feature names to the results dictionary
-        results["Term"].extend(feature_names)
-        # Calculate the TF, IDF, and TF-IDF for each feature in the document
-        for j, feature in enumerate(feature_names):
-            tf = X_count[i, j]
-            idf = tfidf_transformer.idf_[j]  # or X_tfidf_vectorized.idf_[j]
-            tf_idf_score = X_tfidf[i, j]  # or X_tfidf_vectorized[i, j]
-            # Add the results to the dictionary
-            results["TF"].append(tf)
-            results["IDF"].append(idf)
-            results["TF-IDF"].append(tf_idf_score)
+    # Mengisi DataFrame dengan nilai TF-IDF yang tidak nol
+    for i, doc in enumerate(dataset[f'{column_name}']):
+        doc_tfidf = tfidf[i]
+        non_zero_indices = doc_tfidf.nonzero()[1]
+        tfidf_values = doc_tfidf[0, non_zero_indices].toarray()[0]
+        tfidf_dict = {feature_names[idx]: tfidf_values[j] for j, idx in enumerate(non_zero_indices)}
+        tfidf_df.loc[i] = [' '.join(f'({feature_name}, {tfidf_dict[feature_name]:.3f})' for feature_name in tfidf_dict)]
     # Convert the results dictionary to a Pandas dataframe
-    df = pd.DataFrame(results)
+    dataset = pd.concat([dataset, tfidf_df], axis=1)
 
-    #filter nilai term
-    newdf = df[(df.TF != 0 )]
-    # Save the results to a CSV file
-    return newdf
+    return dataset
 
 def data_spilt(kolom_ulasan,kolom_label):
     x=kolom_ulasan

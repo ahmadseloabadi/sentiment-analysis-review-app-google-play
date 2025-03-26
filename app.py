@@ -13,7 +13,6 @@ import seaborn as sns
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix,classification_report
 from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
@@ -238,13 +237,20 @@ elif(selected == 'Data Preparation') :
 
             if st.button('start TF-IDF') :
                 with st.spinner("Sedang melakukan pembobotan TF-IDF"):
-                    data=dataset[f'{kolom}'] 
-                    start_tfidf=prepro.output_tfidf(data)
-                st.success('berhasil melakukan pembobotan TF-IDF')
-                # st.write('tampilan hasil pembobotan TF-IDF')
-                # st.dataframe(start_tfidf,use_container_width=True)
+                    df_tfidf=prepro.output_tfidf(dataset,kolom)
+                st.toast('berhasil melakukan pembobotan TF-IDF')
 
-                # Save the results to a CSV file
+                st.write('tampilan hasil pembobotan TF-IDF')
+
+                st.dataframe(df_tfidf[['content','Stopword Removal','TF-IDF']],use_container_width=True)
+                csv = df_tfidf.to_csv().encode("utf-8")
+                st.download_button(
+                    label="Download hasil pembobotan TF-IDF",
+                    data=csv,
+                    file_name=f"data hasil pembobotan TF-IDF.csv",
+                    mime="text/csv",
+                    icon=":material/download:",
+                )
     
     with tab3 :
         file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling", type='csv')
