@@ -19,8 +19,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
 
 import my_module.ga.Genetic_Algorithm as svm_hp_opt
-from my_module.dataPreparation.preprocessing import cleansing,casefolding,slangword,stemming,stopword,tokenizing,handle_negation,output_tfidf
+import my_module.dataPreparation.preprocessing as prepro
 from my_module.dataGathering.scraping import scrapping_play_store
+from my_module.dataPreparation.labeling import manual_labeling
 
 # Set page layout and title
 st.set_page_config(page_title="review google play app")
@@ -28,20 +29,7 @@ st.set_page_config(page_title="review google play app")
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
 
-def data_spilt(kolom_ulasan,kolom_label):
-    x=kolom_ulasan
-    y=kolom_label
-    X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.20)
-    return X_train, X_test, Y_train, Y_test
 
-def data_tfidf(X_train, X_test, Y_train, Y_test):
-    
-    x_train = vectorizer.fit_transform(X_train)
-    x_test = vectorizer.transform(X_test)
-    
-    y_train = Encoder.fit_transform(Y_train)
-    y_test = Encoder.fit_transform(Y_test)
-    return y_train, y_test,x_train, x_test
 
 def model_svm(C,gamma,x_train,y_train):
     if C is not None:
@@ -182,7 +170,8 @@ elif(selected == 'Text preprocessing') :
         if file_labeling is not None:
             option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob"),key="pelabelan")
 
-            labeling_Data(file_labeling)
+            if option_label == 'manual':
+                manual_labeling(file_labeling)
     
     with tab2 :        
         file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
@@ -208,37 +197,37 @@ elif(selected == 'Text preprocessing') :
             st.write(dataset)
 
             if st.button('start text preprocessing') :
-                dataset['Cleansing']= dataset[kolom].apply(cleansing)
+                dataset['Cleansing']= dataset[kolom].apply(prepro.cleansing)
                 st.write('tampilan hasil cleansing')
                 cleansing = dataset[[kolom,'Cleansing']]
                 st.dataframe(cleansing)
 
-                dataset['CaseFolding']= dataset['Cleansing'].apply(casefolding)
+                dataset['CaseFolding']= dataset['Cleansing'].apply(prepro.casefolding)
                 st.write('tampilan hasil casefolding')
                 casefolding= dataset[['Cleansing','CaseFolding']]
                 st.dataframe(casefolding)
                 
-                dataset['Tokenizing']= dataset['CaseFolding'].apply(tokenizing)
+                dataset['Tokenizing']= dataset['CaseFolding'].apply(prepro.tokenizing)
                 st.write('tampilan hasil tokenizing')
                 tokenizing= dataset[['CaseFolding','Tokenizing']]
                 st.dataframe(tokenizing)
                 
-                dataset['stemming']= dataset['Tokenizing'].apply(stemming)
+                dataset['stemming']= dataset['Tokenizing'].apply(prepro.stemming)
                 st.write('tampilan hasil stemming')
                 stemming= dataset[['Tokenizing','stemming']]
                 st.dataframe(stemming)
 
-                dataset['negasi']= dataset['stemming'].apply(handle_negation)
+                dataset['negasi']= dataset['stemming'].apply(prepro.handle_negation)
                 st.write('tampilan hasil negasi')
                 negasi= dataset[['stemming','negasi']]
                 st.dataframe(negasi)
 
-                dataset['wordnormalization']= dataset['negasi'].apply(slangword)
+                dataset['wordnormalization']= dataset['negasi'].apply(prepro.slangword)
                 st.write('tampilan hasil word normalization')
                 wordnormalization= dataset[['negasi','wordnormalization']]
                 st.dataframe(wordnormalization)
 
-                dataset['stopword']= dataset['wordnormalization'].apply(stopword)
+                dataset['stopword']= dataset['wordnormalization'].apply(prepro.stopword)
                 st.write('tampilan hasil stopword')
                 stopword= dataset[['wordnormalization','stopword']]
                 #merubah list ke str 
@@ -250,7 +239,7 @@ elif(selected == 'Text preprocessing') :
             if st.button('start pembobotan TF-IDF') :
                 dataset=pd.read_csv('hasil_preprocessing.csv')
                 datasett=dataset['Stopword Removal'] 
-                start_tfidf=output_tfidf(datasett)
+                start_tfidf=prepro.output_tfidf(datasett)
                 st.write('tampilan hasil pembobotan TF-IDF')
                 st.dataframe(start_tfidf,use_container_width=True)
                 # Save the results to a CSV file
@@ -424,13 +413,13 @@ elif(selected == 'Modeling') :
     with tab2 :
         option = st.selectbox('METODE',('SVM', 'GA-SVM'))
         document = st.text_input('masukan kalimat',value="Saran aja buat {name_app} kl bisa limit nya jgn di batasi per 30hari,3bulan,6bulan,12bulan.. Jd kl mau blnj agak susah..kadang linit 30hari g mencukupi.apalagi yg 12 bulan udah pake sekali g bisa pake lagi,kudu lunas dl.🤣🤣🤭🤭 Saran aja,kyk di sebelah limit global sekian juta sy malah suka pake yg dr Aku*******sering sy pake.mau blnj tgl pilih tenor nya. Dari 1bulan,3bulan,6bulan,12bulan.")
-        kcleansing = cleansing(document)
-        kcasefolding = casefolding(kcleansing)
-        ktokenizing = tokenizing(kcasefolding)
-        kstemming = stemming(ktokenizing)
-        knegasi= handle_negation(kstemming)
-        kslangword = slangword(knegasi)
-        kstopword = stopword(kslangword)
+        kcleansing = prepro.cleansing(document)
+        kcasefolding = prepro.casefolding(kcleansing)
+        ktokenizing = prepro.tokenizing(kcasefolding)
+        kstemming = prepro.stemming(ktokenizing)
+        knegasi= prepro.handle_negation(kstemming)
+        kslangword = prepro.slangword(knegasi)
+        kstopword = prepro.stopword(kslangword)
         kdatastr = str(kstopword)
         ktfidf =vectorizer.transform([kdatastr])
         if (option == 'SVM') :

@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 
-def labeling_Data(dataset_path):
+def manual_labeling(dataset_path):
     count=False
     # Load dataset
     data = pd.read_csv(dataset_path)
@@ -32,3 +32,4 @@ def labeling_Data(dataset_path):
         submitted = st.form_submit_button("selesai")    
         if submitted:
             st.write('terima kasih :)')
+

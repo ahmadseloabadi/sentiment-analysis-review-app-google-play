@@ -4,7 +4,12 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
+from sklearn.preprocessing import LabelEncoder
+
+vectorizer = TfidfVectorizer()
+Encoder = LabelEncoder()
 
 # text preprosessing
 def cleansing(kalimat_baru): 
@@ -132,3 +137,18 @@ def output_tfidf(dataset):
     newdf = df[(df.TF != 0 )]
     # Save the results to a CSV file
     return newdf
+
+def data_spilt(kolom_ulasan,kolom_label):
+    x=kolom_ulasan
+    y=kolom_label
+    X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.20)
+    return X_train, X_test, Y_train, Y_test
+
+def data_tfidf(X_train, X_test, Y_train, Y_test):
+    
+    x_train = vectorizer.fit_transform(X_train)
+    x_test = vectorizer.transform(X_test)
+    
+    y_train = Encoder.fit_transform(Y_train)
+    y_test = Encoder.fit_transform(Y_test)
+    return y_train, y_test,x_train, x_test
