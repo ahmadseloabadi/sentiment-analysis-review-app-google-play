@@ -96,7 +96,7 @@ def stemming(kalimat_baru):
     stemmed_words = [stemmer.stem(word) for word in kalimat_baru]
     return stemmed_words
 
-def output_tfidf(data):
+def output_tfidf(dataset):
     
     # Create CountVectorizer instance
     count_vectorizer = CountVectorizer()
