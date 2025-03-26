@@ -11,10 +11,7 @@ import numpy as np
 import random as rd
 import seaborn as sns
 
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
 
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
@@ -24,11 +21,10 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
 
 import Genetic_Algorithm as svm_hp_opt
-
+from preprocessing import cleansing,casefolding,slangword,stemming,stopword,tokenizing,handle_negation
 
 from google_play_scraper import Sort, reviews_all, app
 from google_play_scraper.exceptions import NotFoundError
-
 
 
 # Set page layout and title
@@ -53,8 +49,7 @@ def extract_app_details(url):
 def convert_for_download(df):
     return df.to_csv().encode("utf-8")
 
-if 'is_scrap' not in st.session_state and st.session_state['is_scraping'] is not True:
-    st.toast("silahkan lakukan scraping data terlebih dahulu")
+
 #scrapping google play store
 def scrapping_play_store(url_app):
     try :
@@ -101,7 +96,7 @@ def scrapping_play_store(url_app):
         sorted_df = sorted_df.sort_index()
         st.dataframe(sorted_df)
         
-        st.write("silahkan download data untuk proses selanjutnya :)")
+        st.write("jika data sudah sesuai silahkan download data untuk proses selanjutnya :)")
         csv = convert_for_download(sorted_df)
         st.download_button(
             label="Download CSV",
@@ -110,8 +105,11 @@ def scrapping_play_store(url_app):
             mime="text/csv",
             icon=":material/download:",
         )
+    finally:
+        if 'is_scrap' not in st.session_state :
+            st.toast("silahkan lakukan scraping data terlebih dahulu")
 
-def create_sentiment_column(dataset_path):
+def labeling_Data(dataset_path):
     count=False
     # Load dataset
     data = pd.read_csv(dataset_path)
@@ -143,90 +141,7 @@ def create_sentiment_column(dataset_path):
             st.write('terima kasih :)')
 
 
-# text preprosessing
-def cleansing(kalimat_baru): 
-    kalimat_baru = re.sub(r'@[A-Za-a0-9]+',' ',kalimat_baru)
-    kalimat_baru = re.sub(r'#[A-Za-z0-9]+',' ',kalimat_baru)
-    kalimat_baru = re.sub(r"http\S+",' ',kalimat_baru)
-    kalimat_baru = re.sub(r'[0-9]+',' ',kalimat_baru)
-    kalimat_baru = re.sub(r"[-()\"#/@;:<>{}'+=~|.!?,_]", " ", kalimat_baru)
-    kalimat_baru = re.sub(r"\b[a-zA-Z]\b", " ", kalimat_baru)
-    kalimat_baru = kalimat_baru.strip(' ')
-    # menghilangkan emoji
-    def clearEmoji(ulasan):
-        return ulasan.encode('ascii', 'ignore').decode('ascii')
-    kalimat_baru =clearEmoji(kalimat_baru)
-    def replaceTOM(ulasan):
-        pola = re.compile(r'(.)\1{2,}', re.DOTALL)
-        return pola.sub(r'\1', ulasan)
-    kalimat_baru=replaceTOM(kalimat_baru)
-    return kalimat_baru
-def casefolding(kalimat_baru):
-    kalimat_baru = kalimat_baru.lower()
-    return kalimat_baru
-def tokenizing(kalimat_baru):
-    kalimat_baru = word_tokenize(kalimat_baru)
-    return kalimat_baru
-def slangword (kalimat_baru):
-    kamusSlang = eval(open("data/dictionary/slangwords.txt").read())
-    pattern = re.compile(r'\b( ' + '|'.join (kamusSlang.keys())+r')\b')
-    content = []
-    for kata in kalimat_baru:
-        filter_slang = pattern.sub(lambda x: kamusSlang[x.group()], kata.lower())
-        if filter_slang.startswith('tidak_'):
-          kata_depan = 'tidak_'
-          kata_belakang = kata[6:]
-          kata_belakang_slang = pattern.sub(lambda x: kamusSlang[x.group()], kata_belakang.lower())
-          kata_hasil = kata_depan + kata_belakang_slang
-          content.append(kata_hasil)
-        else:
-          content.append(filter_slang)
-    kalimat_baru = content
-    return kalimat_baru
-def handle_negation(kalimat_baru):
-    negation_words = ["tidak", "bukan", "tak", "tiada", "jangan", "gak",'ga']
-    new_words = []
-    prev_word_is_negation = False
-    for word in kalimat_baru:
-        if word in negation_words:
-            new_words.append("tidak_")
-            prev_word_is_negation = True
-        elif prev_word_is_negation:
-            new_words[-1] += word
-            prev_word_is_negation = False
-        else:
-            new_words.append(word)
-    return new_words
-def stopword (kalimat_baru):
-    daftar_stopword = stopwords.words('indonesian')
-    daftar_stopword.extend(["yg", "dg", "rt", "dgn", "ny", "d",'gb','ahk','g','anjing','ga','gua','nder']) 
-    # Membaca file teks stopword menggunakan pandas
-    txt_stopword = pd.read_csv("data/dictionary/stopwords.txt", names=["stopwords"], header=None)
 
-    # Menggabungkan daftar stopword dari NLTK dengan daftar stopword dari file teks
-    daftar_stopword.extend(txt_stopword['stopwords'].tolist())
-
-    # Mengubah daftar stopword menjadi set untuk pencarian yang lebih efisien
-    daftar_stopword = set(daftar_stopword)
-
-    def stopwordText(words):
-        cleaned_words = []
-        for word in words:
-            # Memisahkan kata dengan tambahan "tidak_"
-            if word.startswith("tidak_"):
-                cleaned_words.append(word[:5])
-                cleaned_words.append(word[6:])
-            elif word not in daftar_stopword:
-                cleaned_words.append(word)
-        return cleaned_words
-    kalimat_baru = stopwordText(kalimat_baru)
-    return kalimat_baru 
-def stemming(kalimat_baru):
-    factory = StemmerFactory()
-    stemmer = factory.create_stemmer()
-    # Lakukan stemming pada setiap kata
-    stemmed_words = [stemmer.stem(word) for word in kalimat_baru]
-    return stemmed_words
 
 def output_tfidf(dataset):
     # Create CountVectorizer instance
@@ -301,7 +216,7 @@ def output_dataset(dataset,kolom_ulasan,kolom_label):
     st.title(f'Dataset ulasan aplikasi {name_app}')
     st.write(f'Dataset ulasan aplikasi {name_app}) didapatkan dari scrapping pada google play store dengan jarak data yang diambil pada tangga {tanggal_terkecil.date()} hingga {tanggal_terbesar.date()} dengan jumlah ulasan sebanyak {len(dataset)}')
 
-    st.write('berikut merupakan link pada google play store untuk  aplikasi [{name_app})](https://play.google.com/store/apps/details?id=com.finaccel.android&hl=id&showAllReviews=true) ')
+    st.write(f'berikut merupakan link pada google play store untuk  aplikasi [{name_app})]({st.session_state["url"]}) ')
 
     st.subheader(f'Tabel dataset ulasan palikasi {name_app}')
     def filter_sentiment(dataset, selected_sentiment):
@@ -364,6 +279,8 @@ def class_report(model,x_test,y_test):
     plt.ylabel('True labels')
     plt.title('Confusion Matrix')
     st.pyplot(f)
+
+
 #side bar
 with st.sidebar :
     selected = option_menu('sentimen analisis',['Home','Text preprocessing','Algoritma Genetika','Testing','Report'])
@@ -389,11 +306,12 @@ if(selected == 'Home') :
 elif(selected == 'Text preprocessing') :
     tab1,tab2,tab3=st.tabs(['Labeling','Dataset','Text preprosesing'])
 
-            
     with tab1 :
         file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling", type='csv')
         if file_labeling is not None:
-            create_sentiment_column(file_labeling)
+            option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob"),key="pelabelan")
+
+            labeling_Data(file_labeling)
     
     with tab2 :        
         file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
