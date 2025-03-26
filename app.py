@@ -192,26 +192,27 @@ elif(selected == 'Data Preparation') :
                 tokenizing= dataset[['CaseFolding','Tokenizing']]
                 st.dataframe(tokenizing)
                 
-                dataset['stemming']= dataset['Tokenizing'].apply(prepro.stemming)
+                dataset['Stemming']= dataset['Tokenizing'].apply(prepro.stemming)
                 st.write('tampilan hasil stemming')
-                stemming= dataset[['Tokenizing','stemming']]
+                stemming= dataset[['Tokenizing','Stemming']]
                 st.dataframe(stemming)
 
-                dataset['negasi']= dataset['stemming'].apply(prepro.handle_negation)
-                st.write('tampilan hasil negasi')
-                negasi= dataset[['stemming','negasi']]
+                dataset['Negasi']= dataset['Stemming'].apply(prepro.handle_negation)
+                st.write('tampilan hasil Negasi')
+                negasi= dataset[['Stemming','Negasi']]
                 st.dataframe(negasi)
 
-                dataset['wordnormalization']= dataset['negasi'].apply(prepro.slangword)
+                dataset['Word Normalization']= dataset['Negasi'].apply(prepro.slangword)
                 st.write('tampilan hasil word normalization')
-                wordnormalization= dataset[['negasi','wordnormalization']]
+                wordnormalization= dataset[['negasi','Word Normalization']]
                 st.dataframe(wordnormalization)
 
-                dataset['stopword']= dataset['wordnormalization'].apply(prepro.stopword)
+                dataset['stopword']= dataset['Word Normalization'].apply(prepro.stopword)
                 st.write('tampilan hasil stopword')
-                stopword= dataset[['wordnormalization','stopword']]
+                stopword= dataset[['Word Normalization','stopword']]
                 #merubah list ke str 
                 dataset['Stopword Removal'] = dataset['stopword'].apply(' '.join)
+                dataset.drop(columns='stopword',inplace=True)
                 st.dataframe(stopword)
                 prepro=True
 
