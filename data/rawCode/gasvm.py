@@ -6,7 +6,7 @@ from sklearn import model_selection
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn import svm
-import my_module.ga.Genetic_Algorithm as svm_hp_opt
+import myModule.ga.Genetic_Algorithm as svm_hp_opt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
