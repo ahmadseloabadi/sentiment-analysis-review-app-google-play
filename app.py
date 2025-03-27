@@ -19,11 +19,14 @@ from sklearn import svm
 
 import my_module.ga.Genetic_Algorithm as svm_hp_opt
 import my_module.dataPreparation.preprocessing as prepro
+import my_module.dataPreparation.labeling as labeling
 from my_module.dataGathering.scraping import scrapping_play_store
-from my_module.dataPreparation.labeling import manual_labeling
+from my_module.reusable.downloadButton import download_data
 
 # Set page layout and title
 st.set_page_config(page_title="review google play app")
+
+
 
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
@@ -155,6 +158,7 @@ if(selected == 'Home') :
         st.image('img/GA.jpg')
     with tab2:
         st.write(f'scrapping data ulasan aplikasi pada google play store')
+        st.info("https://play.google.com/store/apps/details?id=com.reddit.frontpage&hl=id")
         url_app=st.text_input("masukan link aplikasi google playstore :")
         if st.button('start scrapping') :
             scrapping_result=scrapping_play_store(url_app)
@@ -216,14 +220,8 @@ elif(selected == 'Data Preparation') :
                 prepro=True
 
                 st.dataframe(dataset,use_container_width=True)
-                csv = dataset.to_csv().encode("utf-8")
-                st.download_button(
-                    label="Download hasil prepro",
-                    data=csv,
-                    file_name=f"data hasil preprocessing.csv",
-                    mime="text/csv",
-                    icon=":material/download:",
-                )
+                download_data(dataset,"preprocessing")
+
     with tab2:
         uploaded_file = st.file_uploader("masukan data yang akan dilakukan pembobotan TF-IDF", key="TF-IDF", type='csv')
 
@@ -243,22 +241,26 @@ elif(selected == 'Data Preparation') :
                 st.write('tampilan hasil pembobotan TF-IDF')
 
                 st.dataframe(df_tfidf[['content','Stopword Removal','TF-IDF']],use_container_width=True)
-                csv = df_tfidf.to_csv().encode("utf-8")
-                st.download_button(
-                    label="Download hasil pembobotan TF-IDF",
-                    data=csv,
-                    file_name=f"data hasil pembobotan TF-IDF.csv",
-                    mime="text/csv",
-                    icon=":material/download:",
-                )
+                download_data(df_tfidf,"pembobotan TF-IDF")
+                
     
     with tab3 :
-        file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling", type='csv')
+        file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')
         if file_labeling is not None:
-            option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob"),key="pelabelan")
+            dataset = pd.read_csv(file_labeling)
+            option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob","inset_lexicon"),key="pelabelan")
 
             if option_label == 'manual':
-                manual_labeling(file_labeling)
+                labeling.manual_labeling(dataset)
+            if option_label == 'vader':
+                with st.spinner("Sedang melakukan pelabelan data..."):
+                    labeling.vader_labeling(dataset)
+                
+            if option_label == 'textblob':
+                labeling.textblob_labeling(dataset)
+            if option_label == 'inset_lexicon':
+                labeling.inset_labeling(dataset)
+            
     
     with tab4 :        
         file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')

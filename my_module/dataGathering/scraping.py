@@ -5,6 +5,10 @@ import streamlit as st
 from google_play_scraper import Sort, reviews_all, app
 from google_play_scraper.exceptions import NotFoundError
 
+@st.cache_data
+def convert_for_download(df):
+    return df.to_csv(index=False).encode("utf-8")
+
 def extract_app_details(url):
     """Ekstrak app ID, bahasa, dan negara dari URL Play Store."""
     app_id_match = re.search(r'id=([^&]+)', url)
@@ -64,7 +68,8 @@ def scrapping_play_store(url_app):
         st.dataframe(sorted_df)
         
         st.write("jika data sudah sesuai silahkan download data untuk proses selanjutnya :)")
-        csv = sorted_df.to_csv().encode("utf-8")
+        df = sorted_df[:100]
+        csv=convert_for_download(df)
         st.download_button(
             label="Download CSV",
             data=csv,
