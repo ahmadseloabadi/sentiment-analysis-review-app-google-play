@@ -22,16 +22,13 @@ import myModule.dataPreparation.preprocessing as prepro
 import myModule.dataPreparation.labeling as labeling
 from myModule.dataGathering.scraping import scrapping_play_store
 from myModule.reusable.downloadButton import download_data
-from myModule.dataVisualization.data_visual import output_dataset,report_dataset_final
+from myModule.dataPreparation.data_visual import output_dataset,report_dataset_final
 
 # Set page layout and title
 st.set_page_config(page_title="review google play app")
 
-
-
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
-
 
 
 def model_svm(C,gamma,x_train,y_train):
@@ -86,7 +83,7 @@ if(selected == 'Home') :
             
 
 elif(selected == 'Data Preparation') :
-    tab1,tab2,tab3,tab4,tab5=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','Overview'])
+    tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','SMOTE','Overview'])
 
     with tab1 :
 
@@ -139,9 +136,16 @@ elif(selected == 'Data Preparation') :
                 dataset.drop(columns='stopword',inplace=True)
                 st.dataframe(stopword)
                 prepro=True
-
                 st.dataframe(dataset,use_container_width=True)
-                download_data(dataset,"preprocessing")
+                if 'name_app' not in st.session_state:
+                    file_name = uploaded_file.name
+                    pattern = r"data hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+                    match = re.search(pattern, file_name)
+                    name_app_from_file = match.group(1)
+                    download_data(dataset,"preprocessing",name_app_from_file)
+                else:
+                    name_app=st.session_state['name_app']
+                    download_data(dataset,"preprocessing",name_app)
 
     with tab2:
         uploaded_file = st.file_uploader("masukan data yang akan dilakukan pembobotan TF-IDF", key="TF-IDF", type='csv')
@@ -163,7 +167,6 @@ elif(selected == 'Data Preparation') :
 
                 st.dataframe(df_tfidf[['content','Stopword Removal','TF-IDF']],use_container_width=True)
                 download_data(df_tfidf,"pembobotan TF-IDF")
-                
     
     with tab3 :
         file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')
@@ -185,18 +188,30 @@ elif(selected == 'Data Preparation') :
     
     with tab4 :        
         file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
+
         if file_labeling is not None:
             file = pd.read_csv(file_labeling)
+            file_name = file_labeling.name
+            pattern = r"data hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+            match = re.search(pattern, file_name)
+            extracted_name = match.group(1)
             st.dataframe(file)
             ulasan = st.text_input('masukan nama kolom ulasan data',value="content")
             label = st.text_input('masukan nama kolom labeling data',value="sentimen")
             if st.button("tampilkan dataset"):
                 kolom_ulasan =file[ulasan]
                 kolom_label =file[label]
-                output_dataset(file,kolom_ulasan,kolom_label)
-   
-    with tab5 :
+
+                output_dataset(file,extracted_name)
+    with tab5:
+        st.write("ini tempat SMOTE")
+
+    with tab6 :
         st.write('disini ringkasan dari data preparation')
+        if st.button("tampilkan report"):
+                kolom_ulasan =file[ulasan]
+                kolom_label =file[label]
+                report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name)
 elif(selected == 'Modeling') :
     tab1,tab2,tab3=st.tabs(['Model','Evaluation','Testing'])
     with tab1:

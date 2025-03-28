@@ -3,7 +3,7 @@ import pandas as pd
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from deep_translator import GoogleTranslator
-from my_module.reusable.downloadButton import download_data
+from myModule.reusable.downloadButton import download_data
 def translate_to_english(dataset):
     translator = GoogleTranslator(source='auto', target='en')
     dataset['Stopword Removal'] = dataset['Stopword Removal'].astype(str)
