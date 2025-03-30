@@ -204,14 +204,22 @@ elif(selected == 'Data Preparation') :
 
                 output_dataset(file,extracted_name)
     with tab5:
-        st.write("ini tempat SMOTE")
-
+        st.write('tempat smote')
     with tab6 :
-        st.write('disini ringkasan dari data preparation')
-        if st.button("tampilkan report"):
-                kolom_ulasan =file[ulasan]
-                kolom_label =file[label]
-                report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name)
+        file_final = st.file_uploader("masukan data final", key="datasettt_final", type='csv')
+
+        if file_final is not None:
+            file = pd.read_csv(file_final)
+            file_name = file_final.name
+            pattern = r"data hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+            match = re.search(pattern, file_name)
+            extracted_name = match.group(1)
+            ulasan = st.text_input('masukan nama kolom ulasan data',value="content")
+            label = st.text_input('masukan nama kolom labeling data',value="sentimen")
+            
+            kolom_ulasan =file[ulasan]
+            kolom_label =file[label]
+            report_dataset_final(file,kolom_ulasan,kolom_label,extracted_name)
 elif(selected == 'Modeling') :
     tab1,tab2,tab3=st.tabs(['Model','Evaluation','Testing'])
     with tab1:
