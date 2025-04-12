@@ -5,9 +5,11 @@ from nltk.corpus import stopwords
 
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+
+from myModule.reusable.downloadButton import download_model
 
 vectorizer = TfidfVectorizer()
 Encoder = LabelEncoder()
@@ -99,10 +101,9 @@ def stemming(kalimat_baru):
 
 def output_tfidf(dataset,column_name):
     
-
     # Transformasi data hasil prepro menggunakan TF-IDF
     tfidf = vectorizer.fit_transform(dataset[f'{column_name}'])
-
+    
     # Mendapatkan daftar kata yang digunakan dalam TF-IDF
     feature_names = vectorizer.get_feature_names_out()
 
@@ -119,7 +120,7 @@ def output_tfidf(dataset,column_name):
     # Convert the results dictionary to a Pandas dataframe
     dataset = pd.concat([dataset, tfidf_df], axis=1)
 
-    return dataset
+    return tfidf,dataset
 
 def data_spilt(kolom_ulasan,kolom_label):
     x=kolom_ulasan

@@ -16,7 +16,7 @@ def translate_to_english(dataset):
     )
     return dataset
 
-def manual_labeling(dataset):
+def manual_labeling(dataset,name_app):
     count=False
     # Load dataset
     data = pd.DataFrame(dataset)
@@ -46,9 +46,9 @@ def manual_labeling(dataset):
         submitted = st.form_submit_button("selesai")    
         if submitted:
             st.write('terima kasih :)')
-            download_data(data,"pelabelan manual")
+            download_data(data,"pelabelan manual",name_app)
 
-def vader_labeling(dataset):
+def vader_labeling(dataset,name_app):
     nltk.downloader.download('vader_lexicon')
     # Inisialisasi SentimentIntensityAnalyzer
     sia = SentimentIntensityAnalyzer()
@@ -77,11 +77,11 @@ def vader_labeling(dataset):
         data.at[index, 'sentimen'] = label
     data=data.drop(columns='English_Tweet')
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader('berikut merupakan tampilan dari pelabelan vader')
+    st.subheader(f'berikut merupakan tampilan dari pelabelan vader pada dataset ulasan aplikasi {name_app}')
     st.dataframe(data)
-    download_data(data,"pelabelan vader")
+    download_data(data,"pelabelan vader",name_app)
 
-def textblob_labeling(dataset):
+def textblob_labeling(dataset,name_app):
 
     # mengambil nilai subjectivity
     def getSubjectivity(text):
@@ -107,12 +107,12 @@ def textblob_labeling(dataset):
 
     data=data.drop(columns='English_Tweet')
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader('berikut merupakan tampilan dari pelabelan textblob')
+    st.subheader(f'berikut merupakan tampilan dari pelabelan textblob pada dataset ulasan aplikasi {name_app}')
     st.dataframe(data)
-    download_data(data,"pelabelan textblob")
+    download_data(data,"pelabelan textblob",name_app)
 
 
-def inset_labeling(dataset):
+def inset_labeling(dataset,name_app):
     lexicon_positive = dict()
     with open('data/kamus/positive.tsv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
@@ -156,6 +156,6 @@ def inset_labeling(dataset):
     dataset['sentiment'] = results[2]
     dataset=dataset[['content','score_term','polarity_score','sentiment']]
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader('berikut merupakan tampilan dari pelabelan inset lexicon')
+    st.subheader(f'berikut merupakan tampilan dari pelabelan inset lexicon pada dataset ulasan aplikasi {name_app}')
     st.dataframe(dataset)
-    download_data(dataset,"pelabelan inset lexicon")
+    download_data(dataset,"pelabelan inset lexicon",name_app)

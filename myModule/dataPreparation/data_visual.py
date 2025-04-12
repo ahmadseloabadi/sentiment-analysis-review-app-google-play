@@ -30,13 +30,13 @@ def output_dataset(dataset,file_name):
     datneg,datnet, datpos  = st.columns(3)
     with datpos:
         st.markdown("Positif")
-        st.markdown(f"<h1 style='text-align: center; color: blue;'>{kelas_sentimen[0]}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align: center; color: blue;'>{kelas_sentimen['positif']}</h1>", unsafe_allow_html=True)
     with datnet:
         st.markdown("Netral")
-        st.markdown(f"<h1 style='text-align: center; color: red;'>{kelas_sentimen[2]}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align: center; color: green;'>{kelas_sentimen['netral']}</h1>", unsafe_allow_html=True)
     with datneg:
         st.markdown("Negatif")
-        st.markdown(f"<h1 style='text-align: center; color: aqua;'>{kelas_sentimen[1]}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align: center; color: red;'>{kelas_sentimen['negatif']}</h1>", unsafe_allow_html=True)
     #membuat diagram
     data = {'sentimen': ['negatif', 'netral', 'positif'],
     'jumlah': [kelas_sentimen[1], kelas_sentimen[2], kelas_sentimen[0]]}
