@@ -83,104 +83,103 @@ elif(selected == 'Data Preparation') :
     tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','SMOTE','Overview'])
 
     with tab1 :
-        
-        uploaded_file = st.file_uploader("masukan data yang akan dilakukan preprocessing", key="preprocewssing", type='csv')
 
-        if uploaded_file is not None:
-            
-            dataset = pd.read_csv(uploaded_file)
+        file_prepro = st.file_uploader("masukan data yang akan dilakukan preprocessing", key="preprocewssing", type='csv')
+
+        if file_prepro is not None:
+            dataset = pd.read_csv(file_prepro)
             st.write('proses untuk menampilkan hasil text preprocessing dan tf-idf mungkin membutuhkan waktu yang cukup lama')
-            kolom = st.text_input('masukan nama kolom ulasan/review pada data yang di input',value="content")
+            kolom = st.selectbox('masukan nama kolom ulasan/review pada data yang di input',dataset.columns,key="preprocessing")
             st.write('tampilan dataset yang di input')
             st.write(dataset)
 
             if st.button('start text preprocessing') :
                 dataset['Cleansing']= dataset[kolom].apply(prepro.cleansing)
-                st.write('tampilan hasil cleansing')
-                cleansing = dataset[[kolom,'Cleansing']]
-                st.dataframe(cleansing)
-
                 dataset['CaseFolding']= dataset['Cleansing'].apply(prepro.casefolding)
-                st.write('tampilan hasil casefolding')
-                casefolding= dataset[['Cleansing','CaseFolding']]
-                st.dataframe(casefolding)
-                
                 dataset['Tokenizing']= dataset['CaseFolding'].apply(prepro.tokenizing)
-                st.write('tampilan hasil tokenizing')
-                tokenizing= dataset[['CaseFolding','Tokenizing']]
-                st.dataframe(tokenizing)
-                
                 dataset['Stemming']= dataset['Tokenizing'].apply(prepro.stemming)
-                st.write('tampilan hasil stemming')
-                stemming= dataset[['Tokenizing','Stemming']]
-                st.dataframe(stemming)
-
                 dataset['Negasi']= dataset['Stemming'].apply(prepro.handle_negation)
-                st.write('tampilan hasil Negasi')
-                negasi= dataset[['Stemming','Negasi']]
-                st.dataframe(negasi)
-
                 dataset['Word Normalization']= dataset['Negasi'].apply(prepro.slangword)
-                st.write('tampilan hasil word normalization')
-                wordnormalization= dataset[['Negasi','Word Normalization']]
-                st.dataframe(wordnormalization)
-
                 dataset['stopword']= dataset['Word Normalization'].apply(prepro.stopword)
-                st.write('tampilan hasil stopword')
-                stopword= dataset[['Word Normalization','stopword']]
-                #merubah list ke str 
                 dataset['Stopword Removal'] = dataset['stopword'].apply(' '.join)
                 dataset.drop(columns='stopword',inplace=True)
-                st.dataframe(stopword)
                 prepro=True
                 st.dataframe(dataset,use_container_width=True)
                 st.session_state.dataset = dataset
-                file_name = uploaded_file.name
-                pattern = r"Download hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
-                match = re.search(pattern, file_name)
-                name_app_from_file = match.group(1)
-            if "dataset" in st.session_state:
-                name_app = st.session_state.name_app
-                data=st.session_state.dataset
-                download_data(data,"preprocessing",name_app_from_file)
-               
+                st.session_state.prepro = prepro
+
+        if "dataset" in st.session_state and "prepro" in st.session_state:
+            dataset=st.session_state.dataset
+            st.write('tampilan hasil cleansing')
+            cleansing = dataset[[kolom,'Cleansing']]
+            st.dataframe(cleansing)
+
+            st.write('tampilan hasil casefolding')
+            casefolding= dataset[['Cleansing','CaseFolding']]
+            st.dataframe(casefolding)
+
+            st.write('tampilan hasil tokenizing')
+            tokenizing= dataset[['CaseFolding','Tokenizing']]
+            st.dataframe(tokenizing)
+
+            st.write('tampilan hasil stemming')
+            stemming= dataset[['Tokenizing','Stemming']]
+            st.dataframe(stemming)
+
+            st.write('tampilan hasil Negasi')
+            negasi= dataset[['Stemming','Negasi']]
+            st.dataframe(negasi)
+
+            st.write('tampilan hasil word normalization')
+            wordnormalization= dataset[['Negasi','Word Normalization']]
+            st.dataframe(wordnormalization)
+
+            st.write('tampilan hasil stopword')
+            stopword= dataset[['Word Normalization','Stopword Removal']]
+            st.dataframe(stopword)
+            
+            file_name = file_prepro.name
+            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+            match = re.search(pattern, file_name)
+            
+            name_app_from_file = match.group(1)
+            download_data(dataset,"preprocessing",name_app_from_file)
+
     with tab2:
-        
         uploaded_file = st.file_uploader("masukan data yang akan dilakukan pembobotan TF-IDF", key="TF-IDF", type='csv')
 
         if uploaded_file is not None:
             
             dataset = pd.read_csv(uploaded_file)
             st.write('proses untuk menampilkan hasil text preprocessing dan tf-idf mungkin membutuhkan waktu yang cukup lama')
-            kolom = st.text_input('masukan nama kolom stopword pada data yang diinput',value="Stopword Removal")
+            kolom = st.selectbox('masukan nama kolom stopword pada data yang diinput',dataset.columns,key="tfidf")
             st.write('tampilan dataset yang di input')
             st.write(dataset)
 
-        if st.button('Start TF-IDF'):
-            with st.spinner("Sedang melakukan pembobotan TF-IDF"):
-                tfidf, df_tfidf = prepro.output_tfidf(dataset, kolom)
-                st.session_state.tfidf_model = tfidf
-                st.session_state.df_tfidf = df_tfidf
-                st.toast('Berhasil melakukan pembobotan TF-IDF')
-
-                # Ekstraksi nama app dari nama file
-                file_name = uploaded_file.name
-                pattern = r"Download hasil(?: .+)? (\w+)\.csv"
-                match = re.search(pattern, file_name)
-                name_app_from_file = match.group(1)
+            if st.button('Start TF-IDF'):
+                with st.spinner("Sedang melakukan pembobotan TF-IDF"):
+                    tfidf, df_tfidf = prepro.output_tfidf(dataset, kolom)
+                    st.session_state.tfidf_model = tfidf
+                    st.session_state.df_tfidf = df_tfidf
+                    st.toast('Berhasil melakukan pembobotan TF-IDF')
 
         # Jika hasil sudah ada di session_state
         if "df_tfidf" in st.session_state and "tfidf_model" in st.session_state:
             df_tfidf = st.session_state.df_tfidf
             tfidf = st.session_state.tfidf_model
 
+            file_name = uploaded_file.name
+            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+            match = re.search(pattern, file_name)
+            
+            name_app = match.group(1)
+
             st.write('Tampilan hasil pembobotan TF-IDF')
             st.dataframe(df_tfidf[['content','Stopword Removal','TF-IDF']], use_container_width=True)
 
-            download_data(df_tfidf, "pembobotan TF-IDF", name_app_from_file)
+            download_data(df_tfidf, "pembobotan TF-IDF", name_app)
             download_model(tfidf, "TF-IDF")
 
-    
     with tab3 :
         file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')
         if file_labeling is not None:

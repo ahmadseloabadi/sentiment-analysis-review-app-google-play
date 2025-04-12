@@ -4,10 +4,7 @@ import numpy as np
 import streamlit as st
 from google_play_scraper import Sort, reviews_all, app
 from google_play_scraper.exceptions import NotFoundError
-
-@st.cache_data
-def convert_for_download(df):
-    return df.to_csv(index=False).encode("utf-8")
+from myModule.reusable.downloadButton import download_data
 
 def extract_app_details(url):
     """Ekstrak app ID, bahasa, dan negara dari URL Play Store."""
@@ -69,14 +66,7 @@ def scrapping_play_store(url_app):
         
         st.write("jika data sudah sesuai silahkan download data untuk proses selanjutnya :)")
         df = sorted_df[:100]
-        csv=convert_for_download(df)
-        st.download_button(
-            label="Download CSV",
-            data=csv,
-            file_name=f"ulasan aplikasi {name_app}.csv",
-            mime="text/csv",
-            icon=":material/download:",
-        )
+        download_data(df,"scraping",name_app)
     finally:
         if 'is_scrap' not in st.session_state :
             st.toast("silahkan lakukan scraping data terlebih dahulu")
