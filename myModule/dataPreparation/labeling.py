@@ -103,7 +103,7 @@ def textblob_labeling(dataset,name_app):
 
     data['Subjectivity'] = data['English_Tweet'].apply(getSubjectivity)
     data['Polarity'] = data['English_Tweet'].apply(getPolarity)
-    data['Sentiment'] = data['Polarity'].apply(getSentiment)
+    data['sentimen'] = data['Polarity'].apply(getSentiment)
 
     data=data.drop(columns='English_Tweet')
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
@@ -153,8 +153,8 @@ def inset_labeling(dataset,name_app):
     # Menambahkan kolom baru ke DataFrame
     dataset['score_term'] = results[0]
     dataset['polarity_score'] = results[1]
-    dataset['sentiment'] = results[2]
-    dataset=dataset[['content','score_term','polarity_score','sentiment']]
+    dataset['sentimen'] = results[2]
+    dataset=dataset[['content','score_term','polarity_score','sentimen']]
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
     st.subheader(f'berikut merupakan tampilan dari pelabelan inset lexicon pada dataset ulasan aplikasi {name_app}')
     st.dataframe(dataset)
