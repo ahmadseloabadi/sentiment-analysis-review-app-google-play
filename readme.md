@@ -108,7 +108,3 @@ Kontribusi sangat terbuka! Silakan buat issue atau pull request untuk perbaikan 
 ## 🔗 Tautan Terkait
 
 GitHub Repository: https://github.com/ahmadseloabadi/sentiment-analysis-review-app-google-play
-
-```
-
-```
