@@ -19,6 +19,9 @@ from sklearn import svm
 import myModule.ga.Genetic_Algorithm as svm_hp_opt
 import myModule.dataPreparation.preprocessing as prepro
 import myModule.dataPreparation.labeling as labeling
+import myModule.dataPreparation.tfidf as tfidf
+import myModule.dataPreparation.splitdata as splitdata
+
 from myModule.dataGathering.scraping import scrapping_play_store
 from myModule.reusable.downloadButton import download_data,download_model
 from myModule.dataPreparation.data_visual import output_dataset,report_dataset_final
@@ -166,8 +169,8 @@ elif(selected == 'Data Preparation') :
 
             if st.button('Start TF-IDF'):
                 with st.spinner("Sedang melakukan pembobotan TF-IDF"):
-                    tfidf, df_tfidf ,vectorizer = prepro.output_tfidf(dataset, kolom)
-                    st.session_state.tfidf_model = tfidf
+                    tfidf_model, df_tfidf ,vectorizer = tfidf.output_tfidf(dataset, kolom)
+                    st.session_state.tfidf_model = tfidf_model
                     st.session_state.df_tfidf = df_tfidf
                     st.session_state.vectorizer_model = vectorizer
 
@@ -176,7 +179,7 @@ elif(selected == 'Data Preparation') :
         # Jika hasil sudah ada di session_state
         if "df_tfidf" in st.session_state and "tfidf_model" in st.session_state and "vectorizer_model" in st.session_state:
             df_tfidf = st.session_state.df_tfidf
-            tfidf = st.session_state.tfidf_model
+            tfidf_model = st.session_state.tfidf_model
             vectorizer=st.session_state.vectorizer_model
 
             file_name = uploaded_file.name
@@ -189,7 +192,7 @@ elif(selected == 'Data Preparation') :
             st.dataframe(df_tfidf[['content','Stopword Removal','TF-IDF']], use_container_width=True)
 
             download_data(df_tfidf, "pembobotan TF-IDF", name_app)
-            download_model(tfidf, "TF-IDF")
+            download_model(tfidf_model, "TF-IDF")
             download_model(vectorizer,"vectorizer")
 
     with tab3 :

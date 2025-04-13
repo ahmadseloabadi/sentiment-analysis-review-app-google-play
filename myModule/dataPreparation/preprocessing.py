@@ -2,17 +2,8 @@ import re
 import pandas as pd
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-
-from myModule.reusable.downloadButton import download_model
-
-
-
 
 # text preprosessing
 def cleansing(kalimat_baru): 
@@ -99,34 +90,9 @@ def stemming(kalimat_baru):
     stemmed_words = [stemmer.stem(word) for word in kalimat_baru]
     return stemmed_words
 
-def output_tfidf(dataset,column_name):
-    vectorizer = TfidfVectorizer()
-    # Transformasi data hasil prepro menggunakan TF-IDF
-    tfidf = vectorizer.fit_transform(dataset[f'{column_name}'])
-    
-    # Mendapatkan daftar kata yang digunakan dalam TF-IDF
-    feature_names = vectorizer.get_feature_names_out()
 
-    # Membuat DataFrame kosong untuk menyimpan nilai TF-IDF
-    tfidf_df = pd.DataFrame(columns=['TF-IDF'])
 
-    # Mengisi DataFrame dengan nilai TF-IDF yang tidak nol
-    for i, doc in enumerate(dataset[f'{column_name}']):
-        doc_tfidf = tfidf[i]
-        non_zero_indices = doc_tfidf.nonzero()[1]
-        tfidf_values = doc_tfidf[0, non_zero_indices].toarray()[0]
-        tfidf_dict = {feature_names[idx]: tfidf_values[j] for j, idx in enumerate(non_zero_indices)}
-        tfidf_df.loc[i] = [' '.join(f'({feature_name}, {tfidf_dict[feature_name]:.3f})' for feature_name in tfidf_dict)]
-    # Convert the results dictionary to a Pandas dataframe
-    dataset = pd.concat([dataset, tfidf_df], axis=1)
 
-    return tfidf,dataset,vectorizer
-
-def data_spilt(kolom_ulasan,kolom_label):
-    x=kolom_ulasan
-    y=kolom_label
-    X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.20)
-    return X_train, X_test, Y_train, Y_test
 
 # def data_tfidf(X_train, X_test, Y_train, Y_test):
 #     Encoder = LabelEncoder()
