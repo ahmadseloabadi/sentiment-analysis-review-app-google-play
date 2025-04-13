@@ -88,7 +88,7 @@ if(selected == 'Home') :
             
 
 elif(selected == 'Data Preparation') :
-    tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','SMOTE','Overview'])
+    tab1,tab2,tab3,tab4,tab5,tab6,tab7=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','SMOTE','Split Data','Dataset Overview'])
 
     with tab1 :
 
@@ -237,7 +237,9 @@ elif(selected == 'Data Preparation') :
                 output_dataset(file,extracted_name,label)
     with tab5:
         st.write('tempat smote')
-    with tab6 :
+    with tab6:
+        st.write("ini tempat split dataset")
+    with tab7 :
         file_final = st.file_uploader("masukan data final", key="datasettt_final", type='csv')
 
         if file_final is not None:
