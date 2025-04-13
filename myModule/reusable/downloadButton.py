@@ -16,7 +16,7 @@ def download_data(data,proses,name_app):
 
 def download_model(model,name_model):
     st.download_button(
-    "Download Model",
+    f"Download Model {name_model}",
     data=pickle.dumps(model),
     file_name=f"{name_model}.pkl",
     icon=":material/download:",
