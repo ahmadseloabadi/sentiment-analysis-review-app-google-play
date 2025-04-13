@@ -211,13 +211,13 @@ elif(selected == 'Data Preparation') :
             match = re.search(pattern, file_name)
             extracted_name = match.group(1)
             st.dataframe(file)
-            ulasan = st.text_input('masukan nama kolom ulasan data',value="content")
-            label = st.text_input('masukan nama kolom labeling data',value="sentimen")
+            ulasan = st.selectbox('masukan nama kolom ulasan data',file.columns)
+            label = st.selectbox('masukan nama kolom labeling data',file.columns)
             if st.button("tampilkan dataset"):
                 kolom_ulasan =file[ulasan]
                 kolom_label =file[label]
 
-                output_dataset(file,extracted_name)
+                output_dataset(file,extracted_name,label)
     with tab5:
         st.write('tempat smote')
     with tab6 :

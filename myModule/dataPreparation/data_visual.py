@@ -6,7 +6,7 @@ import myModule.dataPreparation.preprocessing as prepro
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
-def output_dataset(dataset,file_name):
+def output_dataset(dataset,file_name,kolom_ulasan):
     # Mengambil tanggal paling kecil dan paling besar
     tanggal_terkecil = datetime.strptime(dataset['at'].min(), '%Y-%m-%d %H:%M:%S')
     tanggal_terbesar = datetime.strptime(dataset['at'].max(), '%Y-%m-%d %H:%M:%S')
@@ -16,7 +16,7 @@ def output_dataset(dataset,file_name):
 
     st.subheader(f'Tabel dataset ulasan palikasi {file_name}')
     def filter_sentiment(dataset, selected_sentiment):
-        return dataset[dataset['sentimen'].isin(selected_sentiment)]
+        return dataset[dataset[kolom_ulasan].isin(selected_sentiment)]
 
     sentiment_map = {'positif': 'positif', 'negatif': 'negatif', 'netral': 'netral'}
     selected_sentiment = st.multiselect('Pilih kelas sentimen', list(sentiment_map.keys()), default=list(sentiment_map.keys()))
@@ -25,7 +25,7 @@ def output_dataset(dataset,file_name):
 
     # Hitung jumlah kelas dataset
     st.write("Jumlah kelas sentimen:  ")
-    kelas_sentimen = dataset['sentimen'].value_counts()
+    kelas_sentimen = dataset[kolom_ulasan].value_counts()
     # st.write(kelas_sentimen)
     datneg,datnet, datpos  = st.columns(3)
     with datpos:
@@ -38,11 +38,11 @@ def output_dataset(dataset,file_name):
         st.markdown("Negatif")
         st.markdown(f"<h1 style='text-align: center; color: red;'>{kelas_sentimen['negatif']}</h1>", unsafe_allow_html=True)
     #membuat diagram
-    data = {'sentimen': ['negatif', 'netral', 'positif'],
+    data = {kolom_ulasan: ['negatif', 'netral', 'positif'],
     'jumlah': [kelas_sentimen[1], kelas_sentimen[2], kelas_sentimen[0]]}
     datasett = pd.DataFrame(data)
     # Membuat diagram pie interaktif
-    fig = px.pie(datasett, values='jumlah', names='sentimen', title='Diagram kelas sentimen')
+    fig = px.pie(datasett, values='jumlah', names=kolom_ulasan, title='Diagram kelas sentimen')
     st.plotly_chart(fig)
 
 def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
