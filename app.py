@@ -91,7 +91,7 @@ if(selected == 'Home') :
             
 
 elif(selected == 'Data Preparation') :
-    tab1,tab2,tab3,tab4,tab5,tab6,tab7=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset','SMOTE','Split Data','Dataset Overview'])
+    tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','SMOTE','Split Data','Dataset Overview'])
 
     with tab1 :
 
@@ -220,29 +220,13 @@ elif(selected == 'Data Preparation') :
                     with st.spinner("Sedang melakukan pelabelan data..."):
                         labeling.inset_labeling(dataset,extracted_name)
             
-    
-    with tab4 :        
-        output_data = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
 
-        if output_data is not None:
-            file = pd.read_csv(output_data)
-            file_name = output_data.name
-            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
-            match = re.search(pattern, file_name)
-            extracted_name = match.group(1)
-            st.dataframe(file)
-            ulasan = st.selectbox('masukan nama kolom ulasan data',file.columns)
-            label = st.selectbox('masukan nama kolom labeling data',file.columns)
-            if st.button("tampilkan dataset"):
-                kolom_ulasan =file[ulasan]
-                kolom_label =file[label]
-
-                output_dataset(file,extracted_name,label)
-    with tab5:
+                
+    with tab4:
         st.write('tempat smote')
-    with tab6:
+    with tab5:
         st.write("ini tempat split dataset")
-    with tab7 :
+    with tab6 :
         file_final = st.file_uploader("masukan data final", key="datasettt_final", type='csv')
 
         if file_final is not None:
