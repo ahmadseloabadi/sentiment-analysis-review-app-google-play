@@ -86,12 +86,12 @@ streamlit run app.py
 
 ## 📁 Struktur Proyek
 
-📦sentiment-analysis-review-app-google-play
-┣ 📂pages/
-┣ 📂utils/
-┣ 📜app.py
-┣ 📜requirements.txt
-┗ 📜README.md
+sentiment-analysis-review-app-google-play/
+├── data/ # menyimpan data kamus dll.
+├── myModule/ # Fungsi utilitas, pemrosesan teks, dsb.
+├── app.py # Entry point utama aplikasi Streamlit
+├── requirements.txt # Daftar dependensi proyek
+└── README.md # Dokumentasi proyek
 
 ## 🧑‍💻 Kontribusi
 
