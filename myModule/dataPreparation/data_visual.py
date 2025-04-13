@@ -39,10 +39,21 @@ def output_dataset(dataset,file_name,kolom_ulasan):
         st.markdown(f"<h1 style='text-align: center; color: red;'>{kelas_sentimen['negatif']}</h1>", unsafe_allow_html=True)
     #membuat diagram
     data = {kolom_ulasan: ['negatif', 'netral', 'positif'],
-    'jumlah': [kelas_sentimen[1], kelas_sentimen[2], kelas_sentimen[0]]}
+    'jumlah': [kelas_sentimen['negatif'], kelas_sentimen['netral'], kelas_sentimen['positif']]}
     datasett = pd.DataFrame(data)
     # Membuat diagram pie interaktif
-    fig = px.pie(datasett, values='jumlah', names=kolom_ulasan, title='Diagram kelas sentimen')
+    fig = px.pie(
+        datasett,
+        values='jumlah',
+        names=kolom_ulasan,
+        title='Diagram kelas sentimen',
+        color=kolom_ulasan,
+        color_discrete_map={
+            'negatif': 'red',
+            'netral': 'green',
+            'positif': 'blue'
+        }
+    )    
     st.plotly_chart(fig)
 
 def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
@@ -60,7 +71,7 @@ def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
 
     # Hitung jumlah kelas dataset
     st.write("Jumlah kelas sentimen:  ")
-    kelas_sentimen = dataset['sentimen'].value_counts()
+    kelas_sentimen = dataset[kolom_ulasan].value_counts()
     datneg,datnet, datpos  = st.columns(3)
     with datpos:
         st.markdown("Positif")
@@ -75,7 +86,7 @@ def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
     # Sentiment filter
     sentiment_map = {'positif': 'positif', 'negatif': 'negatif', 'netral': 'netral'}
     selected_sentiment = st.multiselect('Pilih kelas sentimen', list(sentiment_map.keys()), default=list(sentiment_map.keys()))
-    filtered_df = dataset[dataset['sentimen'].isin(selected_sentiment)]
+    filtered_df = dataset[dataset[kolom_ulasan].isin(selected_sentiment)]
     st.dataframe(filtered_df)
 
     # Pilihan time frame
@@ -84,14 +95,14 @@ def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
     # Agregasi berdasarkan pilihan pengguna
     if time_frame == "Harian":
         
-        dataset_grouped = filtered_df.groupby(["at", "sentimen"]).size().reset_index(name="jumlah")
+        dataset_grouped = filtered_df.groupby(["at", kolom_ulasan]).size().reset_index(name="jumlah")
     elif time_frame == "Bulanan":
         filtered_df["bulan"] = filtered_df["at"].dt.to_period("M")
-        dataset_grouped = filtered_df.groupby(["bulan", "sentimen"]).size().reset_index(name="jumlah")
+        dataset_grouped = filtered_df.groupby(["bulan", kolom_ulasan]).size().reset_index(name="jumlah")
         dataset_grouped["bulan"] = dataset_grouped["bulan"].astype(str)  # Konversi ke string agar terbaca di plot
     else:  # Tahunan
         filtered_df["tahun"] = filtered_df["at"].dt.to_period("Y")
-        dataset_grouped = filtered_df.groupby(["tahun", "sentimen"]).size().reset_index(name="jumlah")
+        dataset_grouped = filtered_df.groupby(["tahun", kolom_ulasan]).size().reset_index(name="jumlah")
         dataset_grouped["tahun"] = dataset_grouped["tahun"].astype(str)
 
     # Warna sesuai dengan sentimen
@@ -102,23 +113,23 @@ def report_dataset_final(dataset,kolom_ulasan,kolom_label,file_name):
         dataset_grouped,
         x=dataset_grouped.columns[0],  # Bisa 'at', 'bulan', atau 'tahun' tergantung pilihan
         y="jumlah",
-        color="sentimen",
+        color=kolom_ulasan,
         title=f"Tren Sentimen ({time_frame})",
         color_discrete_map=sentiment_colors,
         markers=True,  # Menampilkan titik data
-        line_dash="sentimen"  # Membuat garis putus-putus berdasarkan kategori sentimen
+        line_dash=kolom_ulasan  # Membuat garis putus-putus berdasarkan kategori sentimen
     )
 
     st.plotly_chart(fig)
 
     # Bar Chart: Rating Distribution
-    fig_bar = px.histogram(filtered_df, x="score", title="Distribusi Rating Aplikasi", nbins=5, color="sentimen",
+    fig_bar = px.histogram(filtered_df, x="score", title="Distribusi Rating Aplikasi", nbins=5, color=kolom_ulasan,
                         color_discrete_map={"positif": "blue", "negatif": "red", "netral": "green"},barmode="group")
     st.plotly_chart(fig_bar)
 
     # Word Cloud for each sentiment
     for sentiment, color in zip(["positif", "negatif", "netral"], ["blue", "red", "green"]):
-        sentiment_data = filtered_df[filtered_df["sentimen"] == sentiment]
+        sentiment_data = filtered_df[filtered_df[kolom_ulasan] == sentiment]
         if not sentiment_data.empty:
             text = " ".join(sentiment_data["Stopword Removal"].dropna().astype(str))
             if text.strip():

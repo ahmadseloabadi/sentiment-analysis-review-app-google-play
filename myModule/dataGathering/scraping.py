@@ -48,6 +48,8 @@ def scrapping_play_store(url_app):
         ulasan.dropna()
         st.session_state['url']=url_app
         st.session_state['is_scrap'] = True
+        st.session_state.name_app=name_app
+
     except NotFoundError:
         st.error("⚠️ Aplikasi tidak ditemukan. Pastikan URL yang dimasukkan benar!")
         
@@ -62,11 +64,8 @@ def scrapping_play_store(url_app):
         
         st.write(f"hasil scraping ulasan aplikasi {name_app} pada google play store dengan jarak data yang diambil pada tangga {tanggal_terkecil} hingga {tanggal_terbesar} dengan jumlah ulasan sebanyak {len(sorted_df)}")
         sorted_df = sorted_df.sort_index()
-        st.dataframe(sorted_df)
         
-        st.write("jika data sudah sesuai silahkan download data untuk proses selanjutnya :)")
-        df = sorted_df[:100]
-        download_data(df,"scraping",name_app)
+        return sorted_df
     finally:
         if 'is_scrap' not in st.session_state :
             st.toast("silahkan lakukan scraping data terlebih dahulu")

@@ -77,6 +77,14 @@ if(selected == 'Home') :
         url_app=st.text_input("masukan link aplikasi google playstore :")
         if st.button('start scrapping') :
             scrapping_result=scrapping_play_store(url_app)
+            st.session_state.scarping_data=scrapping_result
+        
+        if "scarping_data" in st.session_state:
+            name_app=st.session_state.name_app
+            scrapping_result=st.session_state.scarping_data
+            st.dataframe(scrapping_result)
+            df = scrapping_result[:100]
+            download_data(df,"scraping",name_app)
             
 
 elif(selected == 'Data Preparation') :
@@ -193,12 +201,17 @@ elif(selected == 'Data Preparation') :
             if option_label == 'manual':
                 labeling.manual_labeling(dataset,extracted_name)
             if option_label == 'vader':
-                with st.spinner("Sedang melakukan pelabelan data..."):
-                    labeling.vader_labeling(dataset,extracted_name)
+                if st.button('Start labeling data'):
+                    with st.spinner("Sedang melakukan pelabelan data..."):
+                        labeling.vader_labeling(dataset,extracted_name)
             if option_label == 'textblob':
-                labeling.textblob_labeling(dataset,extracted_name)
+                if st.button('Start labeling data'):
+                    with st.spinner("Sedang melakukan pelabelan data..."):
+                        labeling.textblob_labeling(dataset,extracted_name)
             if option_label == 'inset_lexicon':
-                labeling.inset_labeling(dataset,extracted_name)
+                if st.button('Start labeling data'):
+                    with st.spinner("Sedang melakukan pelabelan data..."):
+                        labeling.inset_labeling(dataset,extracted_name)
             
     
     with tab4 :        
@@ -229,12 +242,13 @@ elif(selected == 'Data Preparation') :
             pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
             match = re.search(pattern, file_name)
             extracted_name = match.group(1)
-            ulasan = st.text_input('masukan nama kolom ulasan data',value="content",key='overview')
-            label = st.text_input('masukan nama kolom labeling data',value="sentimen",key='overview sentimen')
-            
-            kolom_ulasan =file[ulasan]
-            kolom_label =file[label]
-            report_dataset_final(file,kolom_ulasan,kolom_label,extracted_name)
+            st.dataframe(file)
+            ulasan = st.selectbox('masukan nama kolom ulasan data',file.columns,key="data overview")
+            label = st.selectbox('masukan nama kolom labeling data',file.columns,key="data overview label")
+            if st.button("overview dataset"):
+                kolom_ulasan =file[ulasan]
+                kolom_label =file[label]
+                report_dataset_final(file,kolom_ulasan,kolom_label,extracted_name)
 elif(selected == 'Modeling') :
     tab1,tab2,tab3=st.tabs(['Model','Testing','Evaluation'])
     with tab1:
