@@ -86,12 +86,20 @@ streamlit run app.py
 
 ## 📁 Struktur Proyek
 
+## 📂 Struktur Direktori Proyek
+
+```text
 sentiment-analysis-review-app-google-play/
-├── data/ # menyimpan data kamus dll.
-├── myModule/ # Fungsi utilitas, pemrosesan teks, dsb.
-├── app.py # Entry point utama aplikasi Streamlit
-├── requirements.txt # Daftar dependensi proyek
-└── README.md # Dokumentasi proyek
+├── data/
+│   └── ...                # Berisi dataset, kamus kata, dan file pendukung lainnya
+│
+├── myModule/
+│   ├── __init__.py        # Menandakan ini adalah package Python
+│
+├── app.py                 # Entry point aplikasi Streamlit untuk menjalankan sistem analisis
+├── requirements.txt       # Daftar library dan dependensi yang digunakan dalam proyek
+└── README.md              # Dokumentasi proyek (file ini)
+```
 
 ## 🧑‍💻 Kontribusi
 
@@ -100,3 +108,7 @@ Kontribusi sangat terbuka! Silakan buat issue atau pull request untuk perbaikan 
 ## 🔗 Tautan Terkait
 
 GitHub Repository: https://github.com/ahmadseloabadi/sentiment-analysis-review-app-google-play
+
+```
+
+```
