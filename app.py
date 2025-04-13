@@ -181,11 +181,11 @@ elif(selected == 'Data Preparation') :
             download_model(tfidf, "TF-IDF")
 
     with tab3 :
-        file_labeling = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')
-        if file_labeling is not None:
-            dataset = pd.read_csv(file_labeling)
-            file_name = file_labeling.name
-            pattern = r"Download hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+        labeling_data = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')
+        if labeling_data is not None:
+            dataset = pd.read_csv(labeling_data)
+            file_name = labeling_data.name
+            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
             match = re.search(pattern, file_name)
             extracted_name = match.group(1)
             option_label=st.selectbox('milih metode pelabelan :',('manual',"vader","textblob","inset_lexicon"),key="pelabelan")
@@ -195,7 +195,6 @@ elif(selected == 'Data Preparation') :
             if option_label == 'vader':
                 with st.spinner("Sedang melakukan pelabelan data..."):
                     labeling.vader_labeling(dataset,extracted_name)
-                
             if option_label == 'textblob':
                 labeling.textblob_labeling(dataset,extracted_name)
             if option_label == 'inset_lexicon':
@@ -203,12 +202,12 @@ elif(selected == 'Data Preparation') :
             
     
     with tab4 :        
-        file_labeling = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
+        output_data = st.file_uploader("masukan data yg sudah dilabeli", key="datasettt", type='csv')
 
-        if file_labeling is not None:
-            file = pd.read_csv(file_labeling)
-            file_name = file_labeling.name
-            pattern = r"Download hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+        if output_data is not None:
+            file = pd.read_csv(output_data)
+            file_name = output_data.name
+            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
             match = re.search(pattern, file_name)
             extracted_name = match.group(1)
             st.dataframe(file)
@@ -227,7 +226,7 @@ elif(selected == 'Data Preparation') :
         if file_final is not None:
             file = pd.read_csv(file_final)
             file_name = file_final.name
-            pattern = r"Download hasil(?: .+)? (\w+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
             match = re.search(pattern, file_name)
             extracted_name = match.group(1)
             ulasan = st.text_input('masukan nama kolom ulasan data',value="content",key='overview')
