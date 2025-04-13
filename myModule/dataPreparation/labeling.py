@@ -4,6 +4,7 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from deep_translator import GoogleTranslator
 from myModule.reusable.downloadButton import download_data
+from myModule.dataPreparation.data_visual import output_dataset
 from textblob import TextBlob
 import csv
 
@@ -48,7 +49,7 @@ def manual_labeling(dataset,name_app):
             st.write('terima kasih :)')
             download_data(data,"pelabelan manual",name_app)
 
-def vader_labeling(dataset,name_app):
+def vader_labeling(dataset):
     nltk.downloader.download('vader_lexicon')
     # Inisialisasi SentimentIntensityAnalyzer
     sia = SentimentIntensityAnalyzer()
@@ -64,8 +65,8 @@ def vader_labeling(dataset,name_app):
 
     # Membaca file CSV dengan kolom 'ulasan'
     data = translate_to_english(dataset)
-    st.write("hasil tranlite")
-    st.dataframe(data)
+    # st.write("hasil translite")
+    # st.dataframe(data)
     # Membuat kolom baru untuk menyimpan hasil pelabelan
     data['sentimen'] = ""
 
@@ -77,11 +78,9 @@ def vader_labeling(dataset,name_app):
         data.at[index, 'sentimen'] = label
     data=data.drop(columns='English_Tweet')
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader(f'berikut merupakan tampilan dari pelabelan vader pada dataset ulasan aplikasi {name_app}')
-    st.dataframe(data)
-    download_data(data,"pelabelan vader",name_app)
+    return data
 
-def textblob_labeling(dataset,name_app):
+def textblob_labeling(dataset):
 
     # mengambil nilai subjectivity
     def getSubjectivity(text):
@@ -107,12 +106,10 @@ def textblob_labeling(dataset,name_app):
 
     data=data.drop(columns='English_Tweet')
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader(f'berikut merupakan tampilan dari pelabelan textblob pada dataset ulasan aplikasi {name_app}')
-    st.dataframe(data)
-    download_data(data,"pelabelan textblob",name_app)
+    return data
 
 
-def inset_labeling(dataset,name_app):
+def inset_labeling(data):
     lexicon_positive = dict()
     with open('data/kamus/positive.tsv', 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
@@ -148,14 +145,12 @@ def inset_labeling(dataset,name_app):
             polarity = 'netral'
         return word_scores, score, polarity
     
-    results = dataset.apply(inset_lexicon)
+    results = data.apply(inset_lexicon)
     results = list(zip(*results))
     # Menambahkan kolom baru ke DataFrame
-    dataset['score_term'] = results[0]
-    dataset['polarity_score'] = results[1]
-    dataset['sentimen'] = results[2]
-    dataset=dataset[['content','score_term','polarity_score','sentimen']]
+    data['score_term'] = results[0]
+    data['polarity_score'] = results[1]
+    data['sentimen'] = results[2]
+    data=data[['content','score_term','polarity_score','sentimen']]
     st.toast("berhasil melakukan pelabelan data", icon='🎉')
-    st.subheader(f'berikut merupakan tampilan dari pelabelan inset lexicon pada dataset ulasan aplikasi {name_app}')
-    st.dataframe(dataset)
-    download_data(dataset,"pelabelan inset lexicon",name_app)
+    return data

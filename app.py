@@ -210,15 +210,15 @@ elif(selected == 'Data Preparation') :
             if option_label == 'vader':
                 if st.button('Start labeling data'):
                     with st.spinner("Sedang melakukan pelabelan data..."):
-                        labeling.vader_labeling(dataset,extracted_name)
+                        data=labeling.vader_labeling(dataset)
             if option_label == 'textblob':
                 if st.button('Start labeling data'):
                     with st.spinner("Sedang melakukan pelabelan data..."):
-                        labeling.textblob_labeling(dataset,extracted_name)
+                        data=labeling.textblob_labeling(dataset)
             if option_label == 'inset_lexicon':
                 if st.button('Start labeling data'):
                     with st.spinner("Sedang melakukan pelabelan data..."):
-                        labeling.inset_labeling(dataset,extracted_name)
+                        data=labeling.inset_labeling(dataset)
             
 
                 
