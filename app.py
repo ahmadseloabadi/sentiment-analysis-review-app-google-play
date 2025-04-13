@@ -166,15 +166,18 @@ elif(selected == 'Data Preparation') :
 
             if st.button('Start TF-IDF'):
                 with st.spinner("Sedang melakukan pembobotan TF-IDF"):
-                    tfidf, df_tfidf = prepro.output_tfidf(dataset, kolom)
+                    tfidf, df_tfidf ,vectorizer = prepro.output_tfidf(dataset, kolom)
                     st.session_state.tfidf_model = tfidf
                     st.session_state.df_tfidf = df_tfidf
+                    st.session_state.vectorizer_model = vectorizer
+
                     st.toast('Berhasil melakukan pembobotan TF-IDF')
 
         # Jika hasil sudah ada di session_state
-        if "df_tfidf" in st.session_state and "tfidf_model" in st.session_state:
+        if "df_tfidf" in st.session_state and "tfidf_model" in st.session_state and "vectorizer_model" in st.session_state:
             df_tfidf = st.session_state.df_tfidf
             tfidf = st.session_state.tfidf_model
+            vectorizer=st.session_state.vectorizer_model
 
             file_name = uploaded_file.name
             pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
@@ -187,6 +190,7 @@ elif(selected == 'Data Preparation') :
 
             download_data(df_tfidf, "pembobotan TF-IDF", name_app)
             download_model(tfidf, "TF-IDF")
+            download_model(vectorizer,"vectorizer")
 
     with tab3 :
         labeling_data = st.file_uploader("masukan data yang akan dilabeli", key="labeling_data", type='csv')

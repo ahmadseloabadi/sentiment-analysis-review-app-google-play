@@ -11,8 +11,8 @@ from sklearn.model_selection import train_test_split
 
 from myModule.reusable.downloadButton import download_model
 
-vectorizer = TfidfVectorizer()
-Encoder = LabelEncoder()
+
+
 
 # text preprosessing
 def cleansing(kalimat_baru): 
@@ -100,7 +100,7 @@ def stemming(kalimat_baru):
     return stemmed_words
 
 def output_tfidf(dataset,column_name):
-    
+    vectorizer = TfidfVectorizer()
     # Transformasi data hasil prepro menggunakan TF-IDF
     tfidf = vectorizer.fit_transform(dataset[f'{column_name}'])
     
@@ -120,7 +120,7 @@ def output_tfidf(dataset,column_name):
     # Convert the results dictionary to a Pandas dataframe
     dataset = pd.concat([dataset, tfidf_df], axis=1)
 
-    return tfidf,dataset
+    return tfidf,dataset,vectorizer
 
 def data_spilt(kolom_ulasan,kolom_label):
     x=kolom_ulasan
@@ -128,11 +128,11 @@ def data_spilt(kolom_ulasan,kolom_label):
     X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.20)
     return X_train, X_test, Y_train, Y_test
 
-def data_tfidf(X_train, X_test, Y_train, Y_test):
+# def data_tfidf(X_train, X_test, Y_train, Y_test):
+#     Encoder = LabelEncoder()
+#     x_train = vectorizer.fit_transform(X_train)
+#     x_test = vectorizer.transform(X_test)
     
-    x_train = vectorizer.fit_transform(X_train)
-    x_test = vectorizer.transform(X_test)
-    
-    y_train = Encoder.fit_transform(Y_train)
-    y_test = Encoder.fit_transform(Y_test)
-    return y_train, y_test,x_train, x_test
+#     y_train = Encoder.fit_transform(Y_train)
+#     y_test = Encoder.fit_transform(Y_test)
+#     return y_train, y_test,x_train, x_test
