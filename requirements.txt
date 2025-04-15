@@ -15,4 +15,3 @@ streamlit==1.40.0
 streamlit_option_menu==0.3.2
 textblob==0.17.1
 wordcloud==1.9.3
-~lotly==4.14.3
