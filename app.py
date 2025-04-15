@@ -2,21 +2,16 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-import matplotlib.pyplot as plt
-import plotly.express as px
 import pandas as pd
 import re
-import numpy as np
-import random as rd
-import seaborn as sns
+
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
-from sklearn.metrics import confusion_matrix,classification_report
 from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
 
-import myModule.ga.Genetic_Algorithm as svm_hp_opt
+
 import myModule.dataPreparation.preprocessing as prepro
 import myModule.dataPreparation.labeling as labeling
 import myModule.dataPreparation.tfidf as tfidf
@@ -45,19 +40,7 @@ def model_svm(C,gamma,x_train,y_train):
 
 kfold=5
 
-def class_report(model,x_test,y_test):
-    # Using the model to predict the labels of the test data
-    y_pred = model.predict(x_test)
-    st.write("Classification Report:")
-    st.text(classification_report(y_test, y_pred))
-    st.write('plot confusion matrix')
-    # Membuat plot matriks kebingungan
-    f, ax = plt.subplots(figsize=(8,5))
-    sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt=".0f", ax=ax)
-    plt.xlabel('Predicted labels')
-    plt.ylabel('True labels')
-    plt.title('Confusion Matrix')
-    st.pyplot(f)
+
 
 
 #side bar
