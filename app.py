@@ -4,7 +4,7 @@ from streamlit_option_menu import option_menu
 
 import pandas as pd
 import re
-
+import pickle
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer,TfidfTransformer
 
@@ -16,10 +16,11 @@ import myModule.dataPreparation.preprocessing as prepro
 import myModule.dataPreparation.labeling as labeling
 import myModule.dataPreparation.tfidf as tfidf
 import myModule.dataPreparation.splitdata as splitdata
+import myModule.dataPreparation.smote as Smote
 
 from myModule.dataGathering.scraping import scrapping_play_store
 from myModule.reusable.downloadButton import download_data,download_model
-from myModule.dataPreparation.data_visual import output_dataset,report_dataset_final
+from myModule.dataPreparation.data_visual import report_dataset_final
 
 # Set page layout and title
 st.set_page_config(page_title="review google play app")
@@ -69,7 +70,7 @@ if(selected == 'Home') :
             
 
 elif(selected == 'Data Preparation') :
-    tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','SMOTE','Split Data','Dataset Overview'])
+    tab1,tab2,tab3,tab4,tab5,tab6=st.tabs(['Text preprosesing','TF-IDF','Labeling','Dataset Overview','SMOTE','Split Data'])
 
     with tab1 :
 
@@ -197,29 +198,69 @@ elif(selected == 'Data Preparation') :
                 if st.button('Start labeling data'):
                     with st.spinner("Sedang melakukan pelabelan data..."):
                         data=labeling.inset_labeling(dataset)
+
+    with tab4 :
+            file_final = st.file_uploader("masukan data final", key="datasettt_final", type='csv')
+
+            if file_final is not None:
+                file = pd.read_csv(file_final)
+                file_name = file_final.name
+                pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
+                match = re.search(pattern, file_name)
+                extracted_name = match.group(1)
+                st.dataframe(file)
+                ulasan = st.selectbox('masukan nama kolom ulasan data',file.columns,key="data overview")
+                label = st.selectbox('masukan nama kolom labeling data',file.columns,key="data overview label")
+                if st.button("overview dataset"):
+                    st.session_state.kolom_ulasan =ulasan
+                    st.session_state.kolom_label =label
+                    st.session_state.file_final = file
             
+            if "file_final" in st.session_state:
+                file = st.session_state.file_final
+                kolom_ulasan = st.session_state.kolom_ulasan
+                kolom_label = st.session_state.kolom_label
 
-                
-    with tab4:
-        st.write('tempat smote')
-    with tab5:
-        st.write("ini tempat split dataset")
-    with tab6 :
-        file_final = st.file_uploader("masukan data final", key="datasettt_final", type='csv')
-
-        if file_final is not None:
-            file = pd.read_csv(file_final)
-            file_name = file_final.name
-            pattern = r"Download hasil .+ ulasan aplikasi ([\w\s]+)\.csv"  # Pola untuk mengambil kata terakhir sebelum .csv
-            match = re.search(pattern, file_name)
-            extracted_name = match.group(1)
-            st.dataframe(file)
-            ulasan = st.selectbox('masukan nama kolom ulasan data',file.columns,key="data overview")
-            label = st.selectbox('masukan nama kolom labeling data',file.columns,key="data overview label")
-            if st.button("overview dataset"):
-                kolom_ulasan =file[ulasan]
-                kolom_label =file[label]
                 report_dataset_final(file,kolom_ulasan,kolom_label,extracted_name)
+
+
+    with tab5:
+        uploaded_vectorizer = st.file_uploader("Upload File TF-IDF Vectorizer (Pickle)", type=['pkl'])
+        uploaded_csv = st.file_uploader("Upload File Dataset (CSV)", type=['csv'])
+        if uploaded_vectorizer and uploaded_csv:
+            try:
+                # Load vectorizer
+                vectorizer = pickle.load(uploaded_vectorizer)
+
+                # Load dataset
+                dataset = pd.read_csv(uploaded_csv)
+
+                st.success("File berhasil dimuat!")
+                st.write("Contoh data:")
+                st.write(dataset.head())
+
+                if st.button("Terapkan SMOTE"):
+                    df_result = Smote.smote(vectorizer, dataset)
+                    st.success("SMOTE berhasil diterapkan!")
+                    st.dataframe(df_result.head())
+
+                    # Optional download links
+                    csv = df_result.to_csv(index=False).encode('utf-8')
+                    st.download_button("Download Data Hasil SMOTE", csv, "data_smote.csv", "text/csv")
+
+            except Exception as e:
+                st.error(f"Terjadi kesalahan: {e}")
+    with tab6:
+        st.write("ini tempat split dataset")
+        # st.write(f"pembagian dataset dilakukan dengan skala 80:20, dimana 80%  menjadi data training sedangkan 20% menjadi data testing dari total dataset yaitu {len(dataset)}")
+        # st.write(f'Jumlah data training sebanyak {len(X_train)} data ,data training dapat dilihat pada tabel berikut')
+        # datatrain=pd.concat([X_train, Y_train], axis=1)
+        # st.dataframe(datatrain)
+        # st.write(f'Jumlah data testing sebanyak {len(X_test)} data,data testing dapat dilihat pada tabel berikut')
+        # datatest=pd.concat([X_test, Y_test], axis=1)
+        # st.dataframe(datatest)
+    
+
 elif(selected == 'Modeling') :
     tab1,tab2,tab3=st.tabs(['Model','Testing','Evaluation'])
     with tab1:
