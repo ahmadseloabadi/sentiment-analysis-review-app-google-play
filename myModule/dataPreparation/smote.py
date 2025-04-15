@@ -1,8 +1,11 @@
 from imblearn.over_sampling import SMOTE
+import pandas as pd
+import pickle
 
-def smote(tfidf,dataset):
-    x_res =vectorizer.fit_transform(ulasan['Stemming'])
-    y_res =ulasan['Sentimen']
+
+def smote(vectorizer,dataset):
+    x_res =vectorizer.fit_transform(dataset['Stemming'])
+    y_res =dataset['Sentimen']
     smote = SMOTE(sampling_strategy='auto')
     X_smote, Y_smote = smote.fit_resample(x_res, y_res)
     df = pd.DataFrame(X_smote)
@@ -21,7 +24,8 @@ def smote(tfidf,dataset):
     df['kalimat_asli'] = kalimat_asli
     df.to_csv('data_smote.csv', index=False)
     #mengambil data sintetik
-    df_sintetik = df.iloc[1000:]
+    
+    df_sintetik = df.iloc[len(dataset):]
     #menyimpan dalam bentuk csv
-    df_sintetik.to_csv('data_sintetik.csv', index=False)
-    df
+
+    return df
